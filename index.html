@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calendario de instalaciones</title>
+<meta name="theme-color" content="#1B1E1A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Instalaciones">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231B1E1A'/%3E%3Crect x='18' y='22' width='64' height='56' rx='8' fill='none' stroke='%23fff' stroke-width='6'/%3E%3Crect x='18' y='22' width='64' height='16' fill='%23fff'/%3E%3Ccircle cx='36' cy='56' r='6' fill='%232F9E5B'/%3E%3Ccircle cx='50' cy='56' r='6' fill='%23F2C230'/%3E%3Ccircle cx='64' cy='56' r='6' fill='%23D8403A'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231B1E1A'/%3E%3Crect x='18' y='22' width='64' height='56' rx='8' fill='none' stroke='%23fff' stroke-width='6'/%3E%3Crect x='18' y='22' width='64' height='16' fill='%23fff'/%3E%3Ccircle cx='36' cy='56' r='6' fill='%232F9E5B'/%3E%3Ccircle cx='50' cy='56' r='6' fill='%23F2C230'/%3E%3Ccircle cx='64' cy='56' r='6' fill='%23D8403A'/%3E%3C/svg%3E">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+<script>
+/* ===== CONFIGURACIÓN FIREBASE (editar aquí) =====
+   Pega el objeto firebaseConfig que te da Firebase al agregar una app Web
+   (Configuración del proyecto → Tus apps → SDK setup and configuration).
+   Déjalo vacío ({}) para usar el modo local. */
+window.FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDwQkvxEFeuvqsBWMQJ6kNN7oM-T2q0BEc",
+  authDomain: "calendario-instalaciones-59306.firebaseapp.com",
+  projectId: "calendario-instalaciones-59306",
+  storageBucket: "calendario-instalaciones-59306.firebasestorage.app",
+  messagingSenderId: "165624959655",
+  appId: "1:165624959655:web:73ff0461025f1012070182"
+};
+</script>
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Calendario%20de%20instalaciones%20Modumex%22%2C%22short_name%22%3A%22Instalaciones%22%2C%22display%22%3A%22standalone%22%2C%22start_url%22%3A%22.%22%2C%22background_color%22%3A%22%23F5F6F3%22%2C%22theme_color%22%3A%22%231B1E1A%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data:image/svg+xml%2C%253Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%253E%253Crect width=%27100%27 height=%27100%27 rx=%2722%27 fill=%27%25231B1E1A%27/%253E%253Crect x=%2718%27 y=%2722%27 width=%2764%27 height=%2756%27 rx=%278%27 fill=%27none%27 stroke=%27%2523fff%27 stroke-width=%276%27/%253E%253Crect x=%2718%27 y=%2722%27 width=%2764%27 height=%2716%27 fill=%27%2523fff%27/%253E%253Ccircle cx=%2736%27 cy=%2756%27 r=%276%27 fill=%27%25232F9E5B%27/%253E%253Ccircle cx=%2750%27 cy=%2756%27 r=%276%27 fill=%27%2523F2C230%27/%253E%253Ccircle cx=%2764%27 cy=%2756%27 r=%276%27 fill=%27%2523D8403A%27/%253E%253C/svg%253E%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#F5F6F3;--panel:#FFFFFF;--ink:#1B1E1A;--muted:#6A706A;--line:#D8DCD5;--soft:#ECEFEA;
+  --verde:#2F9E5B;--amarillo:#F2C230;--rojo:#D8403A;
+  --verde-tint:#DDF3E5;--amarillo-tint:#FBEFC2;--rojo-tint:#F8D7D4;
+  --azul:#2F6FD8;--azul-tint:#D9E6FA;
+  --focus:#1B1E1A;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171A;--panel:#1E2124;--ink:#EEF0EC;--muted:#9AA09A;--line:#33383C;--soft:#262A2E;
+    --verde-tint:#1F4A31;--amarillo-tint:#5A4A14;--rojo-tint:#5C2521;--azul-tint:#1E3A66;--focus:#EEF0EC;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15171A;--panel:#1E2124;--ink:#EEF0EC;--muted:#9AA09A;--line:#33383C;--soft:#262A2E;
+  --verde-tint:#1F4A31;--amarillo-tint:#5A4A14;--rojo-tint:#5C2521;--azul-tint:#1E3A66;--focus:#EEF0EC;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.45;min-height:100%}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.wrap{max-width:1180px;margin:0 auto;padding:20px 20px 48px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:22px}
+h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.who{color:var(--muted);font-size:14px;margin-top:4px}
+.who b{color:var(--ink);font-weight:700}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:9px 14px;font-weight:600;font-size:14px;transition:background .12s}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.primary:hover{opacity:.9;background:var(--ink)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn.ok{border-color:var(--verde);color:var(--verde)}
+.btn.no{border-color:var(--rojo);color:var(--rojo)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:22px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+.cal{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+.cal-head h2{margin:0;font-size:19px;font-weight:700;text-transform:capitalize}
+.nav{display:flex;gap:6px}
+.nav button{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-size:18px;line-height:1}
+.nav button:hover{background:var(--soft)}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);background:var(--soft);font-size:12px;font-weight:600;color:var(--muted)}
+.dow div{padding:8px 0;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line)}
+.day{background:var(--panel);min-height:86px;padding:6px;display:flex;flex-direction:column;gap:3px;position:relative;cursor:pointer;border:0;text-align:left;align-items:stretch;transition:filter .12s}
+.day:hover{filter:brightness(.96)}
+.day.other{opacity:.38}
+.day.past{color:var(--muted)}
+.day .n{font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.day.today .n span{background:var(--ink);color:var(--bg);border-radius:6px;padding:0 6px}
+.day.verde{background:var(--verde-tint)}
+.day.amarillo{background:var(--amarillo-tint)}
+.day.rojo{background:var(--rojo-tint)}
+.day.azul{background:var(--azul-tint)}
+.day.sel{box-shadow:inset 0 0 0 2px var(--ink)}
+.chip{font-size:11px;font-weight:600;line-height:1.25;padding:2px 5px;border-radius:4px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip.amarillo{background:var(--amarillo);color:#2A2200}
+.chip.rojo{background:var(--rojo)}
+.chip.azul{background:var(--azul)}
+.more{font-size:11px;color:var(--muted);font-weight:600}
+@media (max-width:600px){.day{min-height:58px;padding:4px}.chip,.more{display:none}.dot-row{display:flex;gap:3px;flex-wrap:wrap}.dot{width:7px;height:7px;border-radius:50%}.dot.amarillo{background:var(--amarillo)}.dot.rojo{background:var(--rojo)}.dot.azul{background:var(--azul)}}
+@media (min-width:601px){.dot-row{display:none}}
+
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+.sw.azul{background:var(--azul)}.sw.verde{background:var(--verde)}.sw.amarillo{background:var(--amarillo)}.sw.rojo{background:var(--rojo)}
+
+.side{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h3{margin:0 0 10px;font-size:15px;font-weight:700}
+.card h3 small{color:var(--muted);font-weight:600;margin-left:6px}
+.card p.sub{margin:-4px 0 10px;color:var(--muted);font-size:13px}
+.empty{color:var(--muted);font-size:14px}
+.req{border-top:1px solid var(--line);padding:10px 0}
+.req:first-child{border-top:0;padding-top:0}
+.req .t{font-weight:700;font-size:14px;display:flex;justify-content:space-between;gap:8px;align-items:start}
+.req .m{color:var(--muted);font-size:13px;margin-top:2px}
+.req .b{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.tag.amarillo{background:var(--amarillo);color:#2A2200}
+.tag.rojo{background:var(--rojo);color:#fff}
+.tag.azul{background:var(--azul);color:#fff}
+.tag.gris{background:var(--soft);color:var(--muted)}
+.fam{display:inline-block;font-size:11px;font-weight:700;border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-right:6px}
+.docs{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.doc{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;border:1px solid var(--line);color:var(--muted);text-decoration:none}
+.doc.has{border-color:var(--verde);color:var(--verde)}
+.doc.has:hover{background:var(--verde-tint)}
+
+dialog{border:0;border-radius:14px;padding:0;background:var(--panel);color:var(--ink);width:min(540px,calc(100% - 32px));box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dlg{padding:22px}
+.dlg h2{margin:0 0 4px;font-size:20px;font-weight:800;letter-spacing:-.01em}
+.dlg p.sub{margin:0 0 16px;color:var(--muted);font-size:14px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:13px;font-weight:600}
+.field label i{color:var(--rojo);font-style:normal}
+.field input,.field select{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--bg);width:100%}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:480px){.row2{grid-template-columns:1fr}}
+.err{color:var(--rojo);font-size:13px;min-height:18px;margin:4px 0 10px;font-weight:600}
+.dlg .actions{justify-content:flex-end;margin-top:6px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px;font-weight:600}
+.seg button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.notice{background:var(--amarillo-tint);border:1px solid var(--amarillo);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:18px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1}
+.ulist{display:flex;flex-direction:column;gap:10px}
+.ulist .u{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap}
+.ulist .u .nm{color:var(--muted);font-size:13px}
+.ulist .u .set{display:flex;gap:6px}
+.ulist .u input{border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);width:150px;font-size:13px}
+.docrow{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.docrow:first-child{border-top:0}
+.docrow .k{font-weight:700;font-size:14px}
+.docrow .v{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.docrow .cur{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.docrow .cur a{font-weight:600;word-break:break-all}
+.docrow .add{display:flex;gap:6px;flex-wrap:wrap}
+.docrow .add input[type=url]{border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);flex:1;min-width:160px;font-size:13px}
+.docrow input[type=file]{display:none}
+@media (max-width:480px){.docrow{grid-template-columns:1fr}}
+
+.gate{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;padding-top:calc(24px + env(safe-area-inset-top,0px));padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));overflow:auto}
+.gate[hidden]{display:none}
+.gate-box{width:min(400px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px 28px;box-shadow:0 24px 60px rgba(0,0,0,.12)}
+.brand{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:26px}
+.brand img{max-width:200px;max-height:72px;width:auto;height:auto}
+.brand .wordmark{font-size:30px;font-weight:800;letter-spacing:.12em;line-height:1}
+.brand .tag{font-size:13px;color:var(--muted);font-weight:600}
+.gate .field input{padding:11px 12px}
+.gate .btn.primary{width:100%;padding:12px;font-size:15px}
+.gate .alt{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);text-align:center;font-size:13px;color:var(--muted)}
+.gate .alt button{background:none;border:0;padding:0;font-weight:700;color:var(--ink);text-decoration:underline;cursor:pointer;font-size:13px}
+
+/* ---- móvil y tableta ---- */
+.tabs{display:none}
+@media (max-width:900px){
+  .wrap{padding:14px 12px 90px}
+  h1{font-size:22px}
+  header{margin-bottom:14px}
+  .actions{width:100%}
+  .actions .btn{flex:1;text-align:center;padding:12px 10px}
+  .tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--panel);border-top:1px solid var(--line);padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px))}
+  .tabs button{flex:1;border:0;background:none;padding:8px 4px;border-radius:10px;font-weight:700;font-size:13px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+  .tabs button .ic{font-size:20px;line-height:1}
+  .tabs button.on{color:var(--ink);background:var(--soft)}
+  .tabs button .cnt{position:absolute;margin-left:28px;margin-top:-4px;background:var(--rojo);color:#fff;font-size:10px;border-radius:999px;padding:1px 5px}
+  .layout[data-tab="cal"] .side{display:none}
+  .layout[data-tab="list"] .cal{display:none}
+  .cal-head{padding:10px 12px}
+  .cal-head h2{font-size:17px}
+  .nav button{width:40px;height:40px}
+  .day{min-height:64px}
+  .legend{gap:10px;font-size:12px}
+  .btn.sm{padding:9px 12px;font-size:14px}
+  .req .b{gap:8px}
+  .field input,.field select,.docrow .add input[type=url],.ulist .u input{font-size:16px}
+  dialog{width:100%;max-width:100%;margin:auto 0 0;border-radius:18px 18px 0 0;max-height:92vh;overflow:auto;box-shadow:none}
+  .dlg{padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px))}
+  .dlg .actions{flex-direction:column-reverse}
+  .dlg .actions .btn{width:100%;padding:12px}
+  .gate-box{padding:28px 22px}
+  .gate .field input,.gate .field select{font-size:16px;padding:12px}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+}
+@media (min-width:601px) and (max-width:900px){.day{min-height:84px}.chip,.more{display:block}.dot-row{display:none}}
+.logo-set{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13px}
+.logo-set img{max-height:40px;max-width:120px}
+.logo-set input[type=file]{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Calendario de instalaciones</h1>
+      <div class="who" id="who">Conectando…</div>
+    </div>
+    <div class="actions" id="topActions"></div>
+  </header>
+
+  <div id="notice" class="notice" hidden></div>
+
+  <div class="layout" id="layout" data-tab="cal">
+    <section class="cal">
+      <div class="cal-head">
+        <h2 id="monthLabel"></h2>
+        <div class="nav">
+          <button id="prev" aria-label="Mes anterior">‹</button>
+          <button id="todayBtn" class="btn sm" style="width:auto">Hoy</button>
+          <button id="next" aria-label="Mes siguiente">›</button>
+        </div>
+      </div>
+      <div class="dow"><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div></div>
+      <div class="grid" id="grid"></div>
+      <div class="legend">
+        <span><i class="sw verde"></i>Disponible</span>
+        <span><i class="sw amarillo"></i>Apartado (pendiente de autorizar)</span>
+        <span><i class="sw rojo"></i>No disponible (autorizado)</span>
+        <span><i class="sw azul"></i>Documentación completa</span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="card" id="dayCard"><h3 id="dayTitle">Selecciona un día</h3><div id="dayBody" class="empty">Toca un día del calendario para ver sus instalaciones.</div></div>
+      <div class="card" id="mineCard" hidden><h3>Mis solicitudes <small id="mineCount"></small></h3><p class="sub">Fechas que apartaste desde esta cuenta. Carga aquí EXP, Planos, Ayudas y Especificaciones; cuando estén los cuatro, la fecha se verá en azul.</p><div id="mineBody"></div></div>
+      <div class="card" id="pendCard" hidden><h3>Por autorizar <small id="pendCount"></small></h3><div id="pendBody" class="empty">Sin solicitudes pendientes.</div></div>
+      <div class="card" id="listCard" hidden><h3>Instalaciones reservadas <small id="listCount"></small></h3><p class="sub">Apartadas y autorizadas con fecha por venir. Adjunta aquí la documentación del proyecto.</p><div id="listBody" class="empty">Nada reservado todavía.</div></div>
+      <div class="card" id="nextCard"><h3>Próximas instalaciones</h3><div id="nextBody" class="empty">Nada programado todavía.</div></div>
+      <div class="card" id="usersCard" hidden><h3>Usuarios</h3><p class="sub">Define o cambia la contraseña de cada usuario.</p><div id="usersBody" class="ulist"></div><div class="logo-set"><img id="logoPrev" alt="" hidden><label class="btn sm">Subir logo Modumex<input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp"></label><button class="btn sm" id="logoDel" type="button" hidden>Quitar logo</button><span style="color:var(--muted)">Se mostrará en el inicio de sesión.</span></div></div>
+    </aside>
+  </div>
+</div>
+
+<dialog id="formDlg"><div class="dlg">
+  <h2>Nueva solicitud</h2>
+  <p class="sub">Todos los campos son obligatorios. Al guardar, la fecha queda apartada en amarillo hasta que oceja o Admin la autoricen; si nadie lo hace en 48 horas, se libera sola.</p>
+  <div class="field"><label for="fSol">Nombre del solicitante <i>*</i></label><input id="fSol" maxlength="80" autocomplete="off" required></div>
+  <div class="field"><label for="fPro">Nombre del proyecto <i>*</i></label><input id="fPro" maxlength="120" autocomplete="off" required></div>
+  <div class="field"><label>Familia <i>*</i></label><div class="seg" id="fFam"><button type="button" data-v="TL">TL</button><button type="button" data-v="Mamparas">Mamparas</button><button type="button" data-v="Muura">Muura</button></div></div>
+  <div class="row2">
+    <div class="field"><label for="fIni">Desde <i>*</i></label><input id="fIni" type="date" required></div>
+    <div class="field"><label for="fFin">Hasta <i>*</i></label><input id="fFin" type="date" required></div>
+  </div>
+  <div class="err" id="fErr"></div>
+  <div class="actions"><button class="btn" id="fCancel" type="button">Cancelar</button><button class="btn primary" id="fSave" type="button">Apartar fecha</button></div>
+</div></dialog>
+
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <div class="brand">
+      <img id="logo" alt="Modumex" hidden>
+      <div class="wordmark" id="wordmark">MODUMEX</div>
+      <div class="tag">Calendario de instalaciones</div>
+    </div>
+    <div class="field"><label for="lUser">Usuario</label><select id="lUser"><option value="admin">Admin</option><option value="oceja">oceja</option><option value="oquezada">oquezada</option><option value="comercial">comercial</option></select></div>
+    <div class="field"><label for="lPass">Contraseña</label><input id="lPass" type="password" autocomplete="current-password"></div>
+    <div class="err" id="lErr"></div>
+    <button class="btn primary" id="lGo" type="button">Entrar</button>
+    <div class="alt">¿Solo quieres ver el calendario o levantar una solicitud?<br><button type="button" id="lCancel">Continuar sin iniciar sesión</button></div>
+  </div>
+</div>
+
+<dialog id="docsDlg"><div class="dlg">
+  <h2 id="dTitle">Documentos</h2>
+  <p class="sub" id="dSub"></p>
+  <div id="dRows"></div>
+  <div class="err" id="dErr"></div>
+  <div class="actions"><button class="btn" id="dClose" type="button">Cerrar</button></div>
+</div></dialog>
+
+<dialog id="confirmDlg"><div class="dlg">
+  <h2 id="cfTitle">¿Confirmas?</h2>
+  <p class="sub" id="cfMsg"></p>
+  <div class="actions"><button class="btn" id="cfNo" type="button">No</button><button class="btn primary" id="cfYes" type="button">Sí, continuar</button></div>
+</div></dialog>
+<nav class="tabs" id="tabs"><button type="button" data-tab="cal" class="on"><span class="ic">📅</span>Calendario</button><button type="button" data-tab="list"><span class="ic">📋</span>Solicitudes<span class="cnt" id="tabCnt" hidden></span></button></nav>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const PERFILES={admin:"Admin",oceja:"oceja",oquezada:"oquezada",comercial:"comercial"};
+const DOCS=["EXP","PLANOS","AYUDAS","ESPECIFICACIONES"];
+const H48=48*3600*1000;
+const MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+let db=null,user=null,assets=null,uid=null,isOwner=false,canWrite=null;
+let perfil=null;          // sesión actual: admin | oceja | oquezada | comercial | null
+let creds={};             // perfil -> hash
+let reqs=[];
+let view=new Date(); view.setDate(1);
+let selected=todayStr();
+let famSel=null;
+let docsFor=null;
+let logoData=null;         // id de solicitud abierta en el diálogo de documentos
+
+function pad(n){return String(n).padStart(2,"0")}
+function toStr(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function todayStr(){return toStr(new Date())}
+function fmt(s){const [y,m,d]=s.split("-");return parseInt(d)+" "+MESES[parseInt(m)-1].slice(0,3)}
+function fmtRange(a,b){return a===b?fmt(a):fmt(a)+" – "+fmt(b)}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function sha(s){const b=new TextEncoder().encode(s);const h=await crypto.subtle.digest("SHA-256",b);return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+function ask(msg){return new Promise(res=>{const d=$("#confirmDlg");$("#cfMsg").textContent=msg;
+  const done=v=>{d.close();$("#cfYes").onclick=null;$("#cfNo").onclick=null;res(v)};
+  $("#cfYes").onclick=()=>done(true);$("#cfNo").onclick=()=>done(false);d.onclose=()=>res(false);d.showModal()})}
+function store(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
+
+// ----- permisos de la app -----
+const can={
+  approve:()=>["admin","oceja"].includes(perfil),
+  cancel:()=>["admin","oceja","oquezada"].includes(perfil),
+  team:()=>["admin","oceja","oquezada"].includes(perfil),
+  docs:r=>["admin","oceja","oquezada"].includes(perfil)||(!!uid&&r&&r.creadoPor===uid),
+  mine:r=>!!uid&&r.creadoPor===uid,
+  manage:()=>perfil==="admin"
+};
+
+// ----- estado efectivo (48h) -----
+function efState(r){
+  if(r.estado==="apartado"&&r.creadoEn&&Date.now()-Date.parse(r.creadoEn)>H48) return "liberado";
+  return r.estado;
+}
+function docsComplete(r){return DOCS.every(k=>r.docs&&r.docs[k]&&r.docs[k].url)}
+function isActive(r){const s=efState(r);return s==="apartado"||s==="autorizado"}
+function covers(r,day){return r.inicio<=day&&day<=r.fin}
+function overlaps(a1,a2,b1,b2){return a1<=b2&&b1<=a2}
+
+// ----- render -----
+function renderWho(){
+  const w=$("#who");const ta=$("#topActions");ta.innerHTML="";
+  if(!db){w.textContent="No se pudo conectar a la base de datos. Inicia sesión en claude.ai e intenta de nuevo.";return}
+  if(perfil) w.innerHTML="Sesión: <b>"+esc(PERFILES[perfil])+"</b>"+(perfil==="comercial"?" · solo consulta":"");
+  else w.textContent="Consulta el calendario o levanta una solicitud. Inicia sesión solo si eres parte del equipo.";
+  const nb=document.createElement("button");nb.className="btn primary";nb.textContent="Levantar solicitud";nb.onclick=()=>openForm();ta.appendChild(nb);
+  const lb=document.createElement("button");lb.className="btn";
+  if(perfil){lb.textContent="Cerrar sesión";lb.onclick=logout}else{lb.textContent="Iniciar sesión";lb.onclick=openLogin}
+  ta.appendChild(lb);
+  $("#usersCard").hidden=!can.manage();
+  $("#pendCard").hidden=!can.approve();
+  $("#listCard").hidden=!can.team();
+  const n=$("#notice");
+  if(window.MODO_LOCAL){n.hidden=false;n.textContent="Modo local: los datos se guardan solo en este navegador. Para compartirlos entre el equipo hay que conectar la app a un servidor (por ejemplo Supabase).";}
+  else if(canWrite===false){n.hidden=false;n.textContent="Tu acceso a este artefacto en claude.ai es de solo lectura: podrás ver el calendario, pero no guardar solicitudes ni cambios. Pide al administrador que te comparta como Contribuidor."}
+  else n.hidden=true;
+}
+
+function renderCal(){
+  $("#monthLabel").textContent=MESES[view.getMonth()]+" "+view.getFullYear();
+  const g=$("#grid");g.innerHTML="";
+  const first=new Date(view);const offset=(first.getDay()+6)%7;
+  const start=new Date(first);start.setDate(1-offset);
+  const today=todayStr();
+  for(let i=0;i<42;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);const s=toStr(d);
+    const act=reqs.filter(r=>isActive(r)&&covers(r,s));
+    let color="verde";
+    if(act.some(docsComplete))color="azul";else if(act.some(r=>efState(r)==="autorizado"))color="rojo";else if(act.length)color="amarillo";
+    const b=document.createElement("button");
+    b.className="day "+color+(d.getMonth()!==view.getMonth()?" other":"")+(s===today?" today":"")+(s<today?" past":"")+(s===selected?" sel":"");
+    b.setAttribute("aria-label",s);
+    let html='<div class="n"><span>'+d.getDate()+'</span></div>';
+    act.slice(0,2).forEach(r=>{html+='<span class="chip '+(docsComplete(r)?"azul":efState(r)==="autorizado"?"rojo":"amarillo")+'" title="'+esc(r.proyecto)+'">'+esc(r.proyecto)+'</span>'});
+    if(act.length>2)html+='<span class="more">+'+(act.length-2)+' más</span>';
+    html+='<div class="dot-row">'+act.map(r=>'<i class="dot '+(docsComplete(r)?"azul":efState(r)==="autorizado"?"rojo":"amarillo")+'"></i>').join("")+'</div>';
+    b.innerHTML=html;
+    b.onclick=()=>{selected=s;if(d.getMonth()!==view.getMonth()){view=new Date(d.getFullYear(),d.getMonth(),1)}renderCal();renderDay()};
+    g.appendChild(b);
+  }
+}
+
+function stateTag(r){
+  const s=efState(r);
+  const map={apartado:["amarillo","Apartado"],autorizado:["rojo","Autorizado"],liberado:["gris","Liberado (48 h)"],rechazado:["gris","Rechazado"],cancelado:["gris","Cancelado"]};
+  const [c,t]=map[s]||["gris",s];return '<span class="tag '+c+'">'+t+'</span>'+(isActive(r)&&docsComplete(r)?' <span class="tag azul">Docs completos</span>':'');
+}
+function docsHtml(r){
+  const d=r.docs||{};
+  return '<div class="docs">'+DOCS.map(k=>{
+    const x=d[k];
+    if(x&&x.url)return '<a class="doc has" href="'+esc(x.url)+'" target="_blank" rel="noopener" title="'+esc(x.nombre||k)+'">'+k+' ✓</a>';
+    return '<span class="doc">'+k+'</span>';
+  }).join("")+'</div>';
+}
+function reqHtml(r,opts){
+  opts=opts||{};
+  const s=efState(r);
+  let h='<div class="req"><div class="t"><span>'+esc(r.proyecto)+'</span>'+stateTag(r)+'</div>';
+  h+='<div class="m"><span class="fam">'+esc(r.familia)+'</span>'+esc(r.solicitante)+' · '+fmtRange(r.inicio,r.fin)+'</div>';
+  if(s==="apartado"){const left=Math.max(0,r.creadoEn?Date.parse(r.creadoEn)+H48-Date.now():0);h+='<div class="m">Se libera en '+Math.floor(left/3600000)+' h '+Math.floor(left%3600000/60000)+' min si no se autoriza</div>'}
+  if(can.docs(r)&&isActive(r))h+=docsHtml(r);
+  const btns=[];
+  if(s==="apartado"&&can.approve()){btns.push('<button class="btn sm ok" data-a="autorizar" data-id="'+r.id+'">Autorizar</button>');btns.push('<button class="btn sm no" data-a="rechazar" data-id="'+r.id+'">Rechazar</button>')}
+  if(isActive(r)&&can.docs(r))btns.push('<button class="btn sm" data-a="docs" data-id="'+r.id+'">Documentos</button>');
+  if(isActive(r)&&can.cancel())btns.push('<button class="btn sm" data-a="cancelar" data-id="'+r.id+'">Cancelar</button>');
+  if(can.manage()&&!opts.noDelete)btns.push('<button class="btn sm" data-a="borrar" data-id="'+r.id+'">Borrar</button>');
+  if(btns.length)h+='<div class="b">'+btns.join("")+'</div>';
+  return h+'</div>';
+}
+
+function renderDay(){
+  const [y,m,d]=selected.split("-");
+  $("#dayTitle").textContent=parseInt(d)+" de "+MESES[parseInt(m)-1]+" "+y;
+  const list=reqs.filter(r=>covers(r,selected)&&isActive(r));
+  const body=$("#dayBody");
+  if(!list.length){body.className="empty";body.innerHTML="Disponible."+(selected>=todayStr()?' <button class="btn sm" id="dayNew">Apartar este día</button>':"")}
+  else{body.className="";body.innerHTML=list.map(r=>reqHtml(r)).join("")}
+  const nb=$("#dayNew");if(nb)nb.onclick=()=>openForm(selected);
+}
+function renderMine(){
+  const list=reqs.filter(r=>can.mine(r)&&isActive(r)).sort((a,b)=>a.inicio<b.inicio?-1:1);
+  $("#mineCard").hidden=!list.length;$("#mineCount").textContent=list.length||"";
+  $("#mineBody").innerHTML=list.map(r=>reqHtml(r,{noDelete:true})).join("");
+}
+function renderPend(){
+  const list=reqs.filter(r=>efState(r)==="apartado").sort((a,b)=>a.inicio<b.inicio?-1:1);
+  $("#pendCount").textContent=list.length||"";
+  const tc=$("#tabCnt");tc.hidden=!(can.approve()&&list.length);tc.textContent=list.length;
+  const b=$("#pendBody");
+  if(!list.length){b.className="empty";b.textContent="Sin solicitudes pendientes."}else{b.className="";b.innerHTML=list.map(r=>reqHtml(r,{noDelete:true})).join("")}
+}
+function renderList(){
+  const t=todayStr();
+  const list=reqs.filter(r=>isActive(r)&&r.fin>=t).sort((a,b)=>a.inicio<b.inicio?-1:1);
+  $("#listCount").textContent=list.length||"";
+  const b=$("#listBody");
+  if(!list.length){b.className="empty";b.textContent="Nada reservado todavía."}else{b.className="";b.innerHTML=list.map(r=>reqHtml(r,{noDelete:true})).join("")}
+}
+function renderNext(){
+  const t=todayStr();
+  const list=reqs.filter(r=>efState(r)==="autorizado"&&r.fin>=t).sort((a,b)=>a.inicio<b.inicio?-1:1).slice(0,8);
+  const b=$("#nextBody");
+  if(!list.length){b.className="empty";b.textContent="Nada programado todavía."}else{b.className="";b.innerHTML=list.map(r=>reqHtml(r,{noDelete:true})).join("")}
+}
+function renderUsers(){
+  if(!can.manage())return;
+  const b=$("#usersBody");b.innerHTML="";
+  Object.keys(PERFILES).forEach(p=>{
+    const row=document.createElement("div");row.className="u";
+    row.innerHTML='<span><b>'+esc(PERFILES[p])+'</b> <span class="nm">'+(creds[p]?"con contraseña":"sin contraseña")+(p==="admin"&&!creds.admin?" · hasta definirla, el dueño del artefacto entra sin ella":"")+'</span></span>';
+    const set=document.createElement("div");set.className="set";
+    const inp=document.createElement("input");inp.type="password";inp.placeholder="Nueva contraseña";inp.autocomplete="new-password";
+    const btn=document.createElement("button");btn.className="btn sm";btn.textContent="Guardar";
+    btn.onclick=async()=>{const v=inp.value;if(v.length<4){toast("Mínimo 4 caracteres");return}btn.disabled=true;
+      try{const h=await sha(p+":"+v);await db.doc("usuarios/"+p).set({hash:h,actualizadoEn:new Date().toISOString()});if(p===perfil)store("sesion",{perfil:p,hash:h});inp.value="";toast("Contraseña guardada para "+PERFILES[p])}catch(e){toast("No se pudo guardar")}btn.disabled=false};
+    set.appendChild(inp);set.appendChild(btn);row.appendChild(set);b.appendChild(row);
+  });
+}
+function applyLogo(){
+  const img=$("#logo"),wm=$("#wordmark"),pv=$("#logoPrev"),del=$("#logoDel");
+  if(logoData){img.src=logoData;img.hidden=false;wm.hidden=true;pv.src=logoData;pv.hidden=false;del.hidden=false}
+  else{img.hidden=true;img.removeAttribute("src");wm.hidden=false;pv.hidden=true;del.hidden=true}
+}
+function shrinkImage(file){return new Promise((res,rej)=>{
+  if(file.type==="image/svg+xml"){const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);return}
+  const img=new Image();const url=URL.createObjectURL(file);
+  img.onload=()=>{const max=480;const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);res(c.toDataURL("image/png"))};
+  img.onerror=rej;img.src=url})}
+$("#logoFile").addEventListener("change",async e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  try{const d=await shrinkImage(f);if(d.length>400000){toast("La imagen es muy grande; usa un PNG más pequeño");return}
+    await db.doc("config/logo").set({data:d,en:new Date().toISOString()});toast("Logo guardado")}
+  catch(err){toast("No se pudo guardar el logo")}
+  e.target.value="";
+});
+$("#logoDel").onclick=async()=>{try{await db.doc("config/logo").delete();toast("Logo quitado")}catch(e){toast("No se pudo quitar")}};
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(!b)return;$("#layout").dataset.tab=b.dataset.tab;[...$("#tabs").children].forEach(x=>x.classList.toggle("on",x===b))});
+function renderAll(){applyLogo();renderWho();renderCal();renderDay();renderMine();renderPend();renderList();renderNext();renderUsers()}
+
+// ----- sesión -----
+const gate=$("#gate");
+function openLogin(){$("#lPass").value="";$("#lErr").textContent="";gate.hidden=false;$("#lPass").focus()}
+function closeLogin(){gate.hidden=true}
+$("#lCancel").onclick=closeLogin;
+$("#lPass").addEventListener("keydown",e=>{if(e.key==="Enter")$("#lGo").click()});
+$("#lGo").onclick=async()=>{
+  const p=$("#lUser").value,v=$("#lPass").value;
+  if(!creds[p]){
+    if(p==="admin"&&(isOwner||window.MODO_FIREBASE)){perfil="admin";store("sesion",{perfil:"admin",hash:"owner"});closeLogin();toast("Entraste como Admin. Define tu contraseña en el panel Usuarios.");renderAll();return}
+    $("#lErr").textContent="Este usuario aún no tiene contraseña. Pide al Admin que la defina.";return}
+  const h=await sha(p+":"+v);
+  if(h!==creds[p]){$("#lErr").textContent="Contraseña incorrecta.";return}
+  perfil=p;store("sesion",{perfil:p,hash:h});closeLogin();toast("Bienvenido, "+PERFILES[p]);renderAll();
+};
+function logout(){perfil=null;store("sesion",null);renderAll();openLogin()}
+function restoreSession(){
+  const s=load("sesion");
+  if(s&&s.perfil&&((creds[s.perfil]&&creds[s.perfil]===s.hash)||(s.perfil==="admin"&&(isOwner||window.MODO_FIREBASE)&&!creds.admin&&s.hash==="owner")))perfil=s.perfil;
+  else perfil=null;
+}
+
+// ----- acciones sobre solicitudes -----
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("button[data-a]");if(!b)return;
+  const r=reqs.find(x=>x.id===b.dataset.id);if(!r||!db)return;
+  if(b.dataset.a==="docs"){openDocs(r);return}
+  const ref=db.doc("solicitudes/"+r.id);const now=new Date().toISOString();
+  b.disabled=true;
+  try{
+    if(b.dataset.a==="autorizar"){
+      const clash=reqs.find(o=>o.id!==r.id&&efState(o)==="autorizado"&&overlaps(o.inicio,o.fin,r.inicio,r.fin));
+      if(clash&&!await ask("Ya hay una instalación autorizada en esas fechas ("+clash.proyecto+"). ¿Autorizar de todos modos?")){b.disabled=false;return}
+      await ref.update({estado:"autorizado",autorizadoPor:perfil,autorizadoEn:now});toast("Autorizada")}
+    else if(b.dataset.a==="rechazar"){await ref.update({estado:"rechazado",autorizadoPor:perfil,autorizadoEn:now});toast("Rechazada")}
+    else if(b.dataset.a==="cancelar"){if(!await ask("¿Cancelar la instalación de "+r.proyecto+"?")){b.disabled=false;return}await ref.update({estado:"cancelado",canceladoPor:perfil,canceladoEn:now});toast("Cancelada")}
+    else if(b.dataset.a==="borrar"){if(!await ask("¿Borrar definitivamente "+r.proyecto+"? Esta acción no se puede deshacer.")){b.disabled=false;return}await ref.delete();toast("Borrada")}
+  }catch(err){toast("No se pudo guardar: "+(err&&err.code||"error"));b.disabled=false}
+});
+
+// ----- formulario (abierto a todos) -----
+const dlg=$("#formDlg");
+function openForm(day){
+  famSel=null;[...$("#fFam").children].forEach(x=>x.classList.remove("on"));
+  $("#fSol").value="";$("#fPro").value="";$("#fErr").textContent="";
+  const d=day||(selected>=todayStr()?selected:todayStr());
+  $("#fIni").value=d;$("#fFin").value=d;$("#fIni").min=todayStr();$("#fFin").min=todayStr();
+  dlg.showModal();$("#fSol").focus();
+}
+$("#fFam").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;famSel=b.dataset.v;[...$("#fFam").children].forEach(x=>x.classList.toggle("on",x===b))});
+$("#fIni").addEventListener("change",()=>{if($("#fFin").value<$("#fIni").value)$("#fFin").value=$("#fIni").value;$("#fFin").min=$("#fIni").value});
+$("#fCancel").onclick=()=>dlg.close();
+$("#fSave").onclick=async()=>{
+  const sol=$("#fSol").value.trim(),pro=$("#fPro").value.trim(),ini=$("#fIni").value,fin=$("#fFin").value,err=$("#fErr");
+  if(!sol)return err.textContent="El nombre del solicitante es obligatorio.";
+  if(!pro)return err.textContent="El nombre del proyecto es obligatorio.";
+  if(!famSel)return err.textContent="Elige una familia: TL, Mamparas o Muura.";
+  if(!ini)return err.textContent="La fecha de inicio es obligatoria.";
+  if(!fin)return err.textContent="La fecha de fin es obligatoria.";
+  if(fin<ini)return err.textContent="La fecha final no puede ser antes de la inicial.";
+  if(ini<todayStr())return err.textContent="No se pueden apartar fechas pasadas.";
+  const clash=reqs.find(r=>isActive(r)&&overlaps(r.inicio,r.fin,ini,fin));
+  if(clash)return err.textContent="Esas fechas ya están "+(efState(clash)==="autorizado"?"ocupadas":"apartadas")+" por "+clash.proyecto+" ("+fmtRange(clash.inicio,clash.fin)+").";
+  if(!db)return err.textContent="Sin conexión a la base de datos.";
+  $("#fSave").disabled=true;
+  try{
+    await db.collection("solicitudes").add({solicitante:sol,proyecto:pro,familia:famSel,inicio:ini,fin:fin,estado:"apartado",creadoPor:uid,creadoEn:new Date().toISOString(),docs:{}});
+    dlg.close();toast("Fecha apartada. Pendiente de autorización.");selected=ini;
+  }catch(e){err.textContent="No se pudo guardar ("+(e&&e.code||"error")+"). Tu acceso a este artefacto debe ser de Contribuidor para enviar solicitudes."}
+  $("#fSave").disabled=false;
+};
+
+// ----- documentos -----
+const ddlg=$("#docsDlg");
+function openDocs(r){docsFor=r.id;renderDocs();ddlg.showModal()}
+$("#dClose").onclick=()=>{docsFor=null;ddlg.close()};
+function renderDocs(){
+  const r=reqs.find(x=>x.id===docsFor);if(!r){ddlg.close();return}
+  $("#dTitle").textContent="Documentos · "+r.proyecto;
+  $("#dSub").textContent=r.familia+" · "+r.solicitante+" · "+fmtRange(r.inicio,r.fin)+(assets?"":" · Sube archivos o pega enlaces (Drive, SharePoint, etc.)");
+  $("#dErr").textContent="";
+  const rows=$("#dRows");rows.innerHTML="";
+  const d=r.docs||{};
+  DOCS.forEach(k=>{
+    const x=d[k];
+    const row=document.createElement("div");row.className="docrow";
+    let cur="";
+    if(x&&x.url)cur='<div class="cur"><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.nombre||x.url)+'</a><button class="btn sm" data-d="quitar" data-k="'+k+'">Quitar</button></div>';
+    else cur='<div class="cur" style="color:var(--muted)">Sin documento</div>';
+    let add='<div class="add">';
+    if(assets)add+='<label class="btn sm">Subir archivo<input type="file" data-d="file" data-k="'+k+'"></label>';
+    add+='<input type="url" placeholder="https://… enlace al documento" data-k="'+k+'"><button class="btn sm" data-d="link" data-k="'+k+'">Guardar enlace</button></div>';
+    row.innerHTML='<div class="k">'+k+'</div><div class="v">'+cur+add+'</div>';
+    rows.appendChild(row);
+  });
+}
+async function saveDoc(k,val){
+  const r=reqs.find(x=>x.id===docsFor);if(!r)return;
+  const docs=Object.assign({},r.docs||{});
+  if(val)docs[k]=Object.assign({},val,{por:perfil||(can.mine(r)?"solicitante":"desconocido"),porId:uid,en:new Date().toISOString()});else delete docs[k];
+  await db.doc("solicitudes/"+r.id).update({docs:docs});
+}
+$("#dRows").addEventListener("click",async e=>{
+  const b=e.target.closest("button[data-d]");if(!b)return;
+  const k=b.dataset.k;b.disabled=true;
+  try{
+    if(b.dataset.d==="quitar"){await saveDoc(k,null);toast(k+" quitado")}
+    else if(b.dataset.d==="link"){
+      const inp=$("#dRows input[type=url][data-k='"+k+"']");const u=inp.value.trim();
+      if(!/^https?:\/\//i.test(u)){$("#dErr").textContent="El enlace debe empezar con http:// o https://";b.disabled=false;return}
+      await saveDoc(k,{tipo:"enlace",url:u,nombre:u.replace(/^https?:\/\//,"").slice(0,60)});toast(k+" guardado")
+    }
+  }catch(err){$("#dErr").textContent="No se pudo guardar ("+(err&&err.code||"error")+")."}
+  b.disabled=false;
+});
+$("#dRows").addEventListener("change",async e=>{
+  const inp=e.target;if(inp.dataset.d!=="file"||!inp.files||!inp.files[0])return;
+  const f=inp.files[0],k=inp.dataset.k;
+  if(f.size>20*1024*1024){$("#dErr").textContent="El archivo supera 20 MB.";return}
+  $("#dErr").textContent="Subiendo "+f.name+"…";
+  try{
+    const up=await assets.upload(f);
+    await saveDoc(k,{tipo:"archivo",url:up.url,id:up.id,nombre:f.name});
+    $("#dErr").textContent="";toast(k+" subido");
+  }catch(err){$("#dErr").textContent="No se pudo subir ("+(err&&err.code||"error")+"). Si no tienes permiso de Editor, pega un enlace en su lugar."}
+});
+
+// ----- liberación automática en base de datos -----
+const released=new Set();
+async function sweepExpired(){
+  if(!perfil||perfil==="comercial")return;
+  for(const r of reqs){
+    if(r.estado==="apartado"&&efState(r)==="liberado"&&!released.has(r.id)){
+      released.add(r.id);
+      try{await db.doc("solicitudes/"+r.id).update({estado:"liberado",liberadoEn:new Date().toISOString()})}catch(e){}
+    }
+  }
+}
+
+// ----- navegación -----
+$("#prev").onclick=()=>{view.setMonth(view.getMonth()-1);renderCal()};
+$("#next").onclick=()=>{view.setMonth(view.getMonth()+1);renderCal()};
+$("#todayBtn").onclick=()=>{view=new Date();view.setDate(1);selected=todayStr();renderCal();renderDay()};
+
+// ----- modo Firebase: página en GitHub Pages + datos compartidos en Firestore -----
+if(!(window.claude&&window.claude.use)&&window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.projectId&&window.firebase){
+  firebase.initializeApp(window.FIREBASE_CONFIG);
+  const fs=firebase.firestore();
+  const fail=e=>{const err=new Error(e&&e.message||"error");err.code=e&&e.code||"error";throw err};
+  const docRef=(c,id)=>{const r=fs.collection(c).doc(id);return {
+    get:async()=>{try{const s=await r.get();return {exists:s.exists,data:()=>s.data()}}catch(e){fail(e)}},
+    set:async v=>{try{await r.set(v)}catch(e){fail(e)}},
+    update:async v=>{try{await r.set(v,{merge:true})}catch(e){fail(e)}},
+    delete:async()=>{try{await r.delete()}catch(e){fail(e)}}
+  }};
+  const fbDb={
+    collection:c=>({
+      add:async v=>{try{const r=await fs.collection(c).add(v);return {id:r.id}}catch(e){fail(e)}},
+      onSnapshot:(fn,err)=>fs.collection(c).onSnapshot(s=>fn({docs:s.docs.map(d=>({id:d.id,data:()=>d.data()}))}),err)
+    }),
+    doc:path=>{const i=path.indexOf("/");return docRef(path.slice(0,i),path.slice(i+1))}
+  };
+  let devId;try{devId=localStorage.getItem("modumex_uid");if(!devId){devId="u-"+Math.random().toString(36).slice(2,12);localStorage.setItem("modumex_uid",devId)}}catch(e){devId="u-anon"}
+  const fbUser={id:async()=>devId,isOwner:async()=>false,can:async()=>true,profiles:async()=>({})};
+  let fbAssets=null;
+  if(window.FIREBASE_CONFIG.storageBucket&&firebase.storage){
+    fbAssets={upload:async f=>{try{const path="documentos/"+Date.now()+"-"+f.name.replace(/[^\w.\-]+/g,"_");const ref=firebase.storage().ref(path);await ref.put(f);const url=await ref.getDownloadURL();return {id:path,url:url}}catch(e){fail(e)}}};
+  }
+  window.claude={use:async n=>n==="db"?fbDb:n==="user"?fbUser:n==="assets"?fbAssets:null};
+  window.MODO_FIREBASE=true;
+}
+// ----- modo independiente: si no está claude.ai, guarda en este navegador -----
+if(!window.claude||!window.claude.use){
+  const KEY="modumex_calendario";
+  let data={};try{data=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){data={}}
+  const listeners={};
+  const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
+  const notify=c=>{(listeners[c]||[]).forEach(fn=>fn({docs:Object.keys(data[c]||{}).map(id=>({id,data:()=>data[c][id]}))}))};
+  const col=c=>{data[c]=data[c]||{};return data[c]};
+  const docRef=(c,id)=>({
+    get:async()=>({exists:!!col(c)[id],data:()=>col(c)[id]}),
+    set:async v=>{col(c)[id]=JSON.parse(JSON.stringify(v));save();notify(c)},
+    update:async v=>{col(c)[id]=Object.assign({},col(c)[id]||{},JSON.parse(JSON.stringify(v)));save();notify(c)},
+    delete:async()=>{delete col(c)[id];save();notify(c)}
+  });
+  const shimDb={
+    collection:c=>({
+      add:async v=>{const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);await docRef(c,id).set(v);return {id}},
+      onSnapshot:fn=>{(listeners[c]=listeners[c]||[]).push(fn);setTimeout(()=>notify(c),0);return()=>{}}
+    }),
+    doc:path=>{const i=path.indexOf("/");return docRef(path.slice(0,i),path.slice(i+1))}
+  };
+  let devId;try{devId=localStorage.getItem(KEY+"_id");if(!devId){devId="local-"+Math.random().toString(36).slice(2,10);localStorage.setItem(KEY+"_id",devId)}}catch(e){devId="local"}
+  const shimUser={id:async()=>devId,isOwner:async()=>true,can:async()=>true,profiles:async()=>({})};
+  window.claude={use:async n=>n==="db"?shimDb:n==="user"?shimUser:null};
+  window.MODO_LOCAL=true;
+}
+// ----- arranque -----
+renderCal();renderDay();
+(async()=>{
+  if(!window.claude||!window.claude.use){renderWho();closeLogin();return}
+  [db,user,assets]=await Promise.all([claude.use("db"),claude.use("user"),claude.use("assets")]);
+  if(!db){renderWho();closeLogin();return}
+  if(user){try{uid=await user.id();isOwner=await user.isOwner();canWrite=await user.can("data.write")}catch(e){}}
+  restoreSession();renderWho();if(perfil)closeLogin();
+  db.collection("config").onSnapshot(snap=>{
+    logoData=null;snap.docs.forEach(d=>{if(d.id==="logo"&&d.data()&&d.data().data)logoData=d.data().data});applyLogo();
+  },e=>console.error("config",e));
+  db.collection("usuarios").onSnapshot(snap=>{
+    creds={};snap.docs.forEach(d=>{const x=d.data();if(x&&x.hash)creds[d.id]=x.hash});
+    restoreSession();renderAll();if(perfil)closeLogin();
+  },e=>console.error("usuarios",e));
+  db.collection("solicitudes").onSnapshot(snap=>{
+    reqs=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+    renderAll();if(docsFor)renderDocs();sweepExpired();
+  },e=>{console.error("solicitudes",e);toast("Error al cargar solicitudes")});
+  setInterval(()=>{renderCal();renderMine();renderPend();renderList();renderDay();sweepExpired()},60000);
+})();
+})();
+</script>
+</body>
+</html>
