@@ -97,6 +97,9 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .day.amarillo{background:var(--amarillo-tint)}
 .day.rojo{background:var(--rojo-tint)}
 .day.azul{background:var(--azul-tint)}
+.day.cerrado{background:var(--soft);color:var(--muted)}
+.day.cerrado .n span::after{content:"";}
+.sw.cerrado{background:var(--line)}
 .day.sel{box-shadow:inset 0 0 0 2px var(--ink)}
 .chip{font-size:11px;font-weight:600;line-height:1.25;padding:2px 5px;border-radius:4px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chip.amarillo{background:var(--amarillo);color:#2A2200}
@@ -259,14 +262,15 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <span><i class="sw amarillo"></i>Apartado (pendiente de autorizar)</span>
         <span><i class="sw rojo"></i>No disponible (autorizado)</span>
         <span><i class="sw azul"></i>Documentación completa</span>
+        <span><i class="sw cerrado"></i>Fin de semana (solo si Admin lo libera)</span>
       </div>
     </section>
 
     <aside class="side">
       <div class="card" id="dayCard"><h3 id="dayTitle">Selecciona un día</h3><div id="dayBody" class="empty">Toca un día del calendario para ver sus instalaciones.</div></div>
-      <div class="card" id="mineCard" hidden><h3>Mis solicitudes <small id="mineCount"></small></h3><p class="sub">Fechas que apartaste desde esta cuenta. Carga aquí EXP, Planos, Ayudas y Especificaciones; cuando estén los cuatro, la fecha se verá en azul.</p><div id="mineBody"></div></div>
+      <div class="card" id="mineCard" hidden><h3>Mis solicitudes <small id="mineCount"></small></h3><p class="sub">Fechas que apartaste con tu usuario. Carga aquí EXP, Planos, Ayudas y Especificaciones; cuando estén los cuatro, la fecha se verá en azul.</p><div id="mineBody"></div></div>
       <div class="card" id="pendCard" hidden><h3>Por autorizar <small id="pendCount"></small></h3><div id="pendBody" class="empty">Sin solicitudes pendientes.</div></div>
-      <div class="card" id="listCard" hidden><h3>Instalaciones reservadas <small id="listCount"></small></h3><p class="sub">Apartadas y autorizadas con fecha por venir. Adjunta aquí la documentación del proyecto.</p><div id="listBody" class="empty">Nada reservado todavía.</div></div>
+      <div class="card" id="listCard" hidden><h3>Instalaciones reservadas <small id="listCount"></small></h3><p class="sub">Apartadas y autorizadas con fecha por venir. Adjunta aquí la documentación del proyecto y las fotos de obra.</p><div id="listBody" class="empty">Nada reservado todavía.</div></div>
       <div class="card" id="nextCard"><h3>Próximas instalaciones</h3><div id="nextBody" class="empty">Nada programado todavía.</div></div>
       <div class="card" id="usersCard" hidden><h3>Usuarios</h3><p class="sub">Define o cambia la contraseña de cada usuario.</p><div id="usersBody" class="ulist"></div><div class="logo-set"><img id="logoPrev" alt="" hidden><label class="btn sm">Subir logo Modumex<input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp"></label><button class="btn sm" id="logoDel" type="button" hidden>Quitar logo</button><span style="color:var(--muted)">Se mostrará en el inicio de sesión.</span></div></div>
     </aside>
@@ -298,12 +302,11 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <div class="field"><label for="lPass">Contraseña</label><input id="lPass" type="password" autocomplete="current-password"></div>
     <div class="err" id="lErr"></div>
     <button class="btn primary" id="lGo" type="button">Entrar</button>
-    <div class="alt">¿Solo quieres ver el calendario o levantar una solicitud?<br><button type="button" id="lCancel">Continuar sin iniciar sesión</button></div>
   </div>
 </div>
 
 <dialog id="docsDlg"><div class="dlg">
-  <h2 id="dTitle">Documentos</h2>
+  <h2 id="dTitle">Documentos y evidencias</h2>
   <p class="sub" id="dSub"></p>
   <div id="dRows"></div>
   <div class="err" id="dErr"></div>
@@ -329,7 +332,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 "use strict";
 const $=s=>document.querySelector(s);
 const PERFILES={admin:"Admin",oceja:"oceja",oquezada:"oquezada",comercial:"comercial"};
-const DOCS=["EXP","PLANOS","AYUDAS","ESPECIFICACIONES"];
+const DOCS=["EXP","PLANOS","AYUDAS","ESPECIFICACIONES","FOTOS OBRA"];
+const DOCS_REQ=["EXP","PLANOS","AYUDAS","ESPECIFICACIONES"]; // los que hacen falta para el azul
 const H48=48*3600*1000;
 const MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
@@ -342,6 +346,7 @@ let selected=todayStr();
 let famSel=null;
 let docsFor=null;
 let logoData=null;
+let liberados=[];         // fechas de fin de semana liberadas por Admin (YYYY-MM-DD)
 let vistoEn=null;         // última vez que el perfil marcó alertas como leídas (ISO)
 let alertKeysKnown=null;  // para avisar con toast cuando llega algo nuevo         // id de solicitud abierta en el diálogo de documentos
 
@@ -365,7 +370,7 @@ const can={
   cancel:()=>["admin","oceja","oquezada"].includes(perfil),
   team:()=>["admin","oceja","oquezada"].includes(perfil),
   docs:r=>["admin","oceja","oquezada"].includes(perfil)||(!!uid&&r&&r.creadoPor===uid),
-  mine:r=>!!uid&&r.creadoPor===uid,
+  mine:r=>(!!perfil&&r.creadoPorPerfil===perfil)||(!!uid&&r.creadoPor===uid),
   manage:()=>perfil==="admin"
 };
 
@@ -374,7 +379,14 @@ function efState(r){
   if(r.estado==="apartado"&&r.creadoEn&&Date.now()-Date.parse(r.creadoEn)>H48) return "liberado";
   return r.estado;
 }
-function docsComplete(r){return DOCS.every(k=>r.docs&&r.docs[k]&&r.docs[k].url)}
+function esFinDeSemana(s){const d=new Date(s+"T12:00:00");const w=d.getDay();return w===0||w===6}
+function esFinCerrado(s){return esFinDeSemana(s)&&!liberados.includes(s)}
+function diasEntre(a,b){const out=[];const d=new Date(a+"T12:00:00");const f=new Date(b+"T12:00:00");while(d<=f){out.push(toStr(d));d.setDate(d.getDate()+1)}return out}
+async function toggleLiberado(s){
+  const next=liberados.includes(s)?liberados.filter(x=>x!==s):liberados.concat([s]);
+  try{await db.doc("config/finesLiberados").set({fechas:next,por:perfil,en:new Date().toISOString()});toast(liberados.includes(s)?"Día bloqueado de nuevo":"Día liberado para programar")}catch(e){toast("No se pudo guardar")}
+}
+function docsComplete(r){return DOCS_REQ.every(k=>r.docs&&r.docs[k]&&r.docs[k].url)}
 function isActive(r){const s=efState(r);return s==="apartado"||s==="autorizado"}
 function covers(r,day){return r.inicio<=day&&day<=r.fin}
 function overlaps(a1,a2,b1,b2){return a1<=b2&&b1<=a2}
@@ -384,12 +396,10 @@ function renderWho(){
   const w=$("#who");const ta=$("#topActions");ta.innerHTML="";
   if(!db){w.textContent="No se pudo conectar a la base de datos. Inicia sesión en claude.ai e intenta de nuevo.";return}
   if(perfil) w.innerHTML="Sesión: <b>"+esc(PERFILES[perfil])+"</b>"+(perfil==="comercial"?" · solo consulta":"");
-  else w.textContent="Consulta el calendario o levanta una solicitud. Inicia sesión solo si eres parte del equipo.";
+  else w.textContent="Inicia sesión para continuar.";
   const bell=document.createElement("button");bell.id="bell";bell.className="bell";bell.type="button";bell.setAttribute("aria-label","Alertas");bell.innerHTML='🔔<span class="bd" hidden></span>';bell.onclick=openAlerts;ta.appendChild(bell);
-  const nb=document.createElement("button");nb.className="btn primary";nb.textContent="Levantar solicitud";nb.onclick=()=>openForm();ta.appendChild(nb);
-  const lb=document.createElement("button");lb.className="btn";
-  if(perfil){lb.textContent="Cerrar sesión";lb.onclick=logout}else{lb.textContent="Iniciar sesión";lb.onclick=openLogin}
-  ta.appendChild(lb);
+  if(perfil){const nb=document.createElement("button");nb.className="btn primary";nb.textContent="Levantar solicitud";nb.onclick=()=>openForm();ta.appendChild(nb);
+    const lb=document.createElement("button");lb.className="btn";lb.textContent="Cerrar sesión";lb.onclick=logout;ta.appendChild(lb)}
   $("#usersCard").hidden=!can.manage();
   $("#pendCard").hidden=!can.approve();
   $("#listCard").hidden=!can.team();
@@ -408,7 +418,7 @@ function renderCal(){
   for(let i=0;i<42;i++){
     const d=new Date(start);d.setDate(start.getDate()+i);const s=toStr(d);
     const act=reqs.filter(r=>isActive(r)&&covers(r,s));
-    let color="verde";
+    let color=esFinCerrado(s)?"cerrado":"verde";
     if(act.some(docsComplete))color="azul";else if(act.some(r=>efState(r)==="autorizado"))color="rojo";else if(act.length)color="amarillo";
     const b=document.createElement("button");
     b.className="day "+color+(d.getMonth()!==view.getMonth()?" other":"")+(s===today?" today":"")+(s<today?" past":"")+(s===selected?" sel":"");
@@ -457,9 +467,15 @@ function renderDay(){
   $("#dayTitle").textContent=parseInt(d)+" de "+MESES[parseInt(m)-1]+" "+y;
   const list=reqs.filter(r=>covers(r,selected)&&isActive(r));
   const body=$("#dayBody");
-  if(!list.length){body.className="empty";body.innerHTML="Disponible."+(selected>=todayStr()?' <button class="btn sm" id="dayNew">Apartar este día</button>':"")}
+  if(!list.length){
+    const cerrado=esFinCerrado(selected);
+    body.className="empty";
+    body.innerHTML=(cerrado?"Fin de semana: bloqueado para programar.":"Disponible.")+(perfil&&!cerrado&&selected>=todayStr()?' <button class="btn sm" id="dayNew">Apartar este día</button>':"")
+      +(can.manage()&&esFinDeSemana(selected)?' <button class="btn sm" id="dayLib">'+(cerrado?"Liberar este día":"Bloquear de nuevo")+'</button>':"");
+  }
   else{body.className="";body.innerHTML=list.map(r=>reqHtml(r)).join("")}
   const nb=$("#dayNew");if(nb)nb.onclick=()=>openForm(selected);
+  const lb=$("#dayLib");if(lb)lb.onclick=()=>toggleLiberado(selected);
 }
 function renderMine(){
   const list=reqs.filter(r=>can.mine(r)&&isActive(r)).sort((a,b)=>a.inicio<b.inicio?-1:1);
@@ -520,7 +536,7 @@ $("#logoFile").addEventListener("change",async e=>{
 $("#logoDel").onclick=async()=>{try{await db.doc("config/logo").delete();toast("Logo quitado")}catch(e){toast("No se pudo quitar")}};
 $("#tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(!b)return;$("#layout").dataset.tab=b.dataset.tab;[...$("#tabs").children].forEach(x=>x.classList.toggle("on",x===b))});
 // ----- alertas dentro de la app -----
-function docsCompletoEn(r){if(!docsComplete(r))return null;return DOCS.map(k=>r.docs[k].en||"").sort().pop()||r.creadoEn}
+function docsCompletoEn(r){if(!docsComplete(r))return null;return DOCS_REQ.map(k=>r.docs[k].en||"").sort().pop()||r.creadoEn}
 function alertas(){
   if(!perfil||perfil==="comercial")return [];
   const out=[];
@@ -558,7 +574,7 @@ function renderAll(){applyLogo();renderWho();renderBell();renderCal();renderDay(
 const gate=$("#gate");
 function openLogin(){$("#lPass").value="";$("#lErr").textContent="";gate.hidden=false;$("#lPass").focus()}
 function closeLogin(){gate.hidden=true}
-$("#lCancel").onclick=closeLogin;
+
 $("#lPass").addEventListener("keydown",e=>{if(e.key==="Enter")$("#lGo").click()});
 $("#lGo").onclick=async()=>{
   const p=$("#lUser").value,v=$("#lPass").value;
@@ -618,12 +634,14 @@ $("#fSave").onclick=async()=>{
   if(!fin)return err.textContent="La fecha de fin es obligatoria.";
   if(fin<ini)return err.textContent="La fecha final no puede ser antes de la inicial.";
   if(ini<todayStr())return err.textContent="No se pueden apartar fechas pasadas.";
+  const cerrados=diasEntre(ini,fin).filter(esFinCerrado);
+  if(cerrados.length)return err.textContent="No se puede programar en sábado o domingo ("+cerrados.map(fmt).join(", ")+") a menos que Admin libere ese día desde el calendario.";
   const clash=reqs.find(r=>isActive(r)&&overlaps(r.inicio,r.fin,ini,fin));
   if(clash)return err.textContent="Esas fechas ya están "+(efState(clash)==="autorizado"?"ocupadas":"apartadas")+" por "+clash.proyecto+" ("+fmtRange(clash.inicio,clash.fin)+").";
   if(!db)return err.textContent="Sin conexión a la base de datos.";
   $("#fSave").disabled=true;
   try{
-    await db.collection("solicitudes").add({solicitante:sol,proyecto:pro,familia:famSel,inicio:ini,fin:fin,estado:"apartado",creadoPor:uid,creadoEn:new Date().toISOString(),docs:{}});
+    await db.collection("solicitudes").add({solicitante:sol,proyecto:pro,familia:famSel,inicio:ini,fin:fin,estado:"apartado",creadoPor:uid,creadoPorPerfil:perfil,creadoEn:new Date().toISOString(),docs:{}});
     dlg.close();toast("Fecha apartada. Pendiente de autorización.");selected=ini;
   }catch(e){err.textContent="No se pudo guardar ("+(e&&e.code||"error")+"). Tu acceso a este artefacto debe ser de Contribuidor para enviar solicitudes."}
   $("#fSave").disabled=false;
@@ -635,7 +653,7 @@ function openDocs(r){docsFor=r.id;renderDocs();ddlg.showModal()}
 $("#dClose").onclick=()=>{docsFor=null;ddlg.close()};
 function renderDocs(){
   const r=reqs.find(x=>x.id===docsFor);if(!r){ddlg.close();return}
-  $("#dTitle").textContent="Documentos · "+r.proyecto;
+  $("#dTitle").textContent="Documentos y evidencias · "+r.proyecto;
   $("#dSub").textContent=r.familia+" · "+r.solicitante+" · "+fmtRange(r.inicio,r.fin)+(assets?"":" · Sube archivos o pega enlaces (Drive, SharePoint, etc.)");
   $("#dErr").textContent="";
   const rows=$("#dRows");rows.innerHTML="";
@@ -757,13 +775,13 @@ if(!window.claude||!window.claude.use){
 // ----- arranque -----
 renderCal();renderDay();
 (async()=>{
-  if(!window.claude||!window.claude.use){renderWho();closeLogin();return}
+  if(!window.claude||!window.claude.use){renderWho();return}
   [db,user,assets]=await Promise.all([claude.use("db"),claude.use("user"),claude.use("assets")]);
-  if(!db){renderWho();closeLogin();return}
+  if(!db){renderWho();$("#lErr").textContent="Sin conexión a la base de datos. Revisa tu internet y recarga.";return}
   if(user){try{uid=await user.id();isOwner=await user.isOwner();canWrite=await user.can("data.write")}catch(e){}}
   restoreSession();renderWho();if(perfil)closeLogin();
   db.collection("config").onSnapshot(snap=>{
-    logoData=null;snap.docs.forEach(d=>{if(d.id==="logo"&&d.data()&&d.data().data)logoData=d.data().data});applyLogo();
+    logoData=null;liberados=[];snap.docs.forEach(d=>{const x=d.data()||{};if(d.id==="logo"&&x.data)logoData=x.data;if(d.id==="finesLiberados"&&Array.isArray(x.fechas))liberados=x.fechas});applyLogo();renderCal();renderDay();
   },e=>console.error("config",e));
   db.collection("usuarios").onSnapshot(snap=>{
     creds={};const vistos={};snap.docs.forEach(d=>{const x=d.data();if(x&&x.hash)creds[d.id]=x.hash;if(x&&x.vistoEn)vistos[d.id]=x.vistoEn});
