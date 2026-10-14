@@ -215,6 +215,19 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .logo-set{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13px}
 .logo-set img{max-height:40px;max-width:120px}
 .logo-set input[type=file]{display:none}
+
+.bell{position:relative;width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:19px;display:inline-flex;align-items:center;justify-content:center}
+.bell:hover{background:var(--soft)}
+.bell .bd[hidden]{display:none}
+.bell .bd{position:absolute;top:-6px;right:-6px;background:var(--rojo);color:#fff;font-size:11px;font-weight:800;border-radius:999px;min-width:18px;height:18px;padding:0 5px;display:flex;align-items:center;justify-content:center}
+.al{border-top:1px solid var(--line);padding:10px 0;display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.al:first-child{border-top:0;padding-top:0}
+.al:hover{background:var(--soft);margin:0 -8px;padding-left:8px;padding-right:8px}
+.al .ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+.al .ic.amarillo{background:var(--amarillo);color:#2A2200}.al .ic.azul{background:var(--azul);color:#fff}
+.al .tx{font-size:14px}.al .tx b{font-weight:700}.al .tm{color:var(--muted);font-size:12px;margin-top:2px}
+.al.nuevo .tx::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--rojo);margin-right:6px;vertical-align:middle}
+@media (max-width:900px){.bell{width:46px;height:46px;flex:none}}
 </style>
 </head>
 <body>
@@ -297,6 +310,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <div class="actions"><button class="btn" id="dClose" type="button">Cerrar</button></div>
 </div></dialog>
 
+<dialog id="alertDlg"><div class="dlg">
+  <h2>Alertas</h2>
+  <p class="sub" id="alSub"></p>
+  <div id="alBody" class="empty">Sin novedades.</div>
+  <div class="actions"><button class="btn" id="alRead" type="button">Marcar todo como leído</button><button class="btn primary" id="alClose" type="button">Cerrar</button></div>
+</div></dialog>
 <dialog id="confirmDlg"><div class="dlg">
   <h2 id="cfTitle">¿Confirmas?</h2>
   <p class="sub" id="cfMsg"></p>
@@ -322,7 +341,9 @@ let view=new Date(); view.setDate(1);
 let selected=todayStr();
 let famSel=null;
 let docsFor=null;
-let logoData=null;         // id de solicitud abierta en el diálogo de documentos
+let logoData=null;
+let vistoEn=null;         // última vez que el perfil marcó alertas como leídas (ISO)
+let alertKeysKnown=null;  // para avisar con toast cuando llega algo nuevo         // id de solicitud abierta en el diálogo de documentos
 
 function pad(n){return String(n).padStart(2,"0")}
 function toStr(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -364,6 +385,7 @@ function renderWho(){
   if(!db){w.textContent="No se pudo conectar a la base de datos. Inicia sesión en claude.ai e intenta de nuevo.";return}
   if(perfil) w.innerHTML="Sesión: <b>"+esc(PERFILES[perfil])+"</b>"+(perfil==="comercial"?" · solo consulta":"");
   else w.textContent="Consulta el calendario o levanta una solicitud. Inicia sesión solo si eres parte del equipo.";
+  const bell=document.createElement("button");bell.id="bell";bell.className="bell";bell.type="button";bell.setAttribute("aria-label","Alertas");bell.innerHTML='🔔<span class="bd" hidden></span>';bell.onclick=openAlerts;ta.appendChild(bell);
   const nb=document.createElement("button");nb.className="btn primary";nb.textContent="Levantar solicitud";nb.onclick=()=>openForm();ta.appendChild(nb);
   const lb=document.createElement("button");lb.className="btn";
   if(perfil){lb.textContent="Cerrar sesión";lb.onclick=logout}else{lb.textContent="Iniciar sesión";lb.onclick=openLogin}
@@ -497,7 +519,40 @@ $("#logoFile").addEventListener("change",async e=>{
 });
 $("#logoDel").onclick=async()=>{try{await db.doc("config/logo").delete();toast("Logo quitado")}catch(e){toast("No se pudo quitar")}};
 $("#tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(!b)return;$("#layout").dataset.tab=b.dataset.tab;[...$("#tabs").children].forEach(x=>x.classList.toggle("on",x===b))});
-function renderAll(){applyLogo();renderWho();renderCal();renderDay();renderMine();renderPend();renderList();renderNext();renderUsers()}
+// ----- alertas dentro de la app -----
+function docsCompletoEn(r){if(!docsComplete(r))return null;return DOCS.map(k=>r.docs[k].en||"").sort().pop()||r.creadoEn}
+function alertas(){
+  if(!perfil||perfil==="comercial")return [];
+  const out=[];
+  reqs.forEach(r=>{
+    if(can.approve()&&efState(r)==="apartado"&&r.creadoEn)out.push({key:"n:"+r.id,tipo:"nueva",en:r.creadoEn,r});
+    if(can.team()&&isActive(r)){const e=docsCompletoEn(r);if(e)out.push({key:"d:"+r.id+":"+e,tipo:"docs",en:e,r})}
+  });
+  out.sort((a,b)=>a.en<b.en?1:-1);
+  out.forEach(a=>{a.nuevo=!vistoEn||a.en>vistoEn});
+  return out;
+}
+function tiempoRel(iso){const m=Math.round((Date.now()-Date.parse(iso))/60000);if(m<1)return "ahora";if(m<60)return "hace "+m+" min";const h=Math.round(m/60);if(h<24)return "hace "+h+" h";return "hace "+Math.round(h/24)+" d"}
+function renderBell(){
+  const list=alertas(),n=list.filter(a=>a.nuevo).length;
+  const b=$("#bell");if(b){b.hidden=!perfil||perfil==="comercial";const bd=b.querySelector(".bd");bd.hidden=!n;bd.textContent=n}
+  document.title=(n?"("+n+") ":"")+"Calendario de instalaciones";
+  if(alertKeysKnown){const nuevos=list.filter(a=>a.nuevo&&!alertKeysKnown.has(a.key));if(nuevos.length){const a=nuevos[0];toast((a.tipo==="nueva"?"Nueva solicitud: ":"Documentación completa: ")+a.r.proyecto)}}
+  alertKeysKnown=new Set(list.map(a=>a.key));
+  if($("#alertDlg").open)renderAlertList();
+}
+function renderAlertList(){
+  const list=alertas();const body=$("#alBody");
+  $("#alSub").textContent=list.length?list.filter(a=>a.nuevo).length+" sin leer · "+list.length+" en total":"";
+  if(!list.length){body.className="empty";body.textContent="Sin novedades.";return}
+  body.className="";
+  body.innerHTML=list.slice(0,40).map(a=>'<div class="al'+(a.nuevo?" nuevo":"")+'" data-id="'+a.r.id+'" data-ini="'+a.r.inicio+'"><div class="ic '+(a.tipo==="nueva"?"amarillo":"azul")+'">'+(a.tipo==="nueva"?"!":"✓")+'</div><div><div class="tx">'+(a.tipo==="nueva"?"Nueva solicitud por autorizar: <b>"+esc(a.r.proyecto)+"</b> ("+esc(a.r.familia)+", "+esc(a.r.solicitante)+", "+fmtRange(a.r.inicio,a.r.fin)+")":"Documentación completa: <b>"+esc(a.r.proyecto)+"</b> ("+fmtRange(a.r.inicio,a.r.fin)+")")+'</div><div class="tm">'+tiempoRel(a.en)+'</div></div></div>').join("");
+}
+$("#alBody").addEventListener("click",e=>{const a=e.target.closest(".al");if(!a)return;$("#alertDlg").close();const d=a.dataset.ini;selected=d;view=new Date(parseInt(d.slice(0,4)),parseInt(d.slice(5,7))-1,1);renderCal();renderDay();if(window.innerWidth<=900){$("#layout").dataset.tab="cal";[...$("#tabs").children].forEach(x=>x.classList.toggle("on",x.dataset.tab==="cal"))}});
+$("#alClose").onclick=()=>$("#alertDlg").close();
+$("#alRead").onclick=async()=>{vistoEn=new Date().toISOString();try{await db.doc("usuarios/"+perfil).update({vistoEn:vistoEn})}catch(e){}renderBell();renderAlertList()};
+function openAlerts(){renderAlertList();$("#alertDlg").showModal()}
+function renderAll(){applyLogo();renderWho();renderBell();renderCal();renderDay();renderMine();renderPend();renderList();renderNext();renderUsers()}
 
 // ----- sesión -----
 const gate=$("#gate");
@@ -508,17 +563,20 @@ $("#lPass").addEventListener("keydown",e=>{if(e.key==="Enter")$("#lGo").click()}
 $("#lGo").onclick=async()=>{
   const p=$("#lUser").value,v=$("#lPass").value;
   if(!creds[p]){
-    if(p==="admin"&&(isOwner||window.MODO_FIREBASE)){perfil="admin";store("sesion",{perfil:"admin",hash:"owner"});closeLogin();toast("Entraste como Admin. Define tu contraseña en el panel Usuarios.");renderAll();return}
+    if(p==="admin"&&(isOwner||window.MODO_FIREBASE)){perfil="admin";vistoEn=null;alertKeysKnown=null;store("sesion",{perfil:"admin",hash:"owner"});closeLogin();toast("Entraste como Admin. Define tu contraseña en el panel Usuarios.");renderAll();return}
     $("#lErr").textContent="Este usuario aún no tiene contraseña. Pide al Admin que la defina.";return}
   const h=await sha(p+":"+v);
   if(h!==creds[p]){$("#lErr").textContent="Contraseña incorrecta.";return}
-  perfil=p;store("sesion",{perfil:p,hash:h});closeLogin();toast("Bienvenido, "+PERFILES[p]);renderAll();
+  perfil=p;vistoEn=(window.__vistos&&window.__vistos[p])||null;alertKeysKnown=null;store("sesion",{perfil:p,hash:h});closeLogin();toast("Bienvenido, "+PERFILES[p]);renderAll();
 };
 function logout(){perfil=null;store("sesion",null);renderAll();openLogin()}
 function restoreSession(){
+  const prev=perfil;
   const s=load("sesion");
   if(s&&s.perfil&&((creds[s.perfil]&&creds[s.perfil]===s.hash)||(s.perfil==="admin"&&(isOwner||window.MODO_FIREBASE)&&!creds.admin&&s.hash==="owner")))perfil=s.perfil;
   else perfil=null;
+  vistoEn=(perfil&&window.__vistos&&window.__vistos[perfil])||null;
+  if(prev!==perfil)alertKeysKnown=null;
 }
 
 // ----- acciones sobre solicitudes -----
@@ -708,14 +766,15 @@ renderCal();renderDay();
     logoData=null;snap.docs.forEach(d=>{if(d.id==="logo"&&d.data()&&d.data().data)logoData=d.data().data});applyLogo();
   },e=>console.error("config",e));
   db.collection("usuarios").onSnapshot(snap=>{
-    creds={};snap.docs.forEach(d=>{const x=d.data();if(x&&x.hash)creds[d.id]=x.hash});
+    creds={};const vistos={};snap.docs.forEach(d=>{const x=d.data();if(x&&x.hash)creds[d.id]=x.hash;if(x&&x.vistoEn)vistos[d.id]=x.vistoEn});
+    window.__vistos=vistos;
     restoreSession();renderAll();if(perfil)closeLogin();
   },e=>console.error("usuarios",e));
   db.collection("solicitudes").onSnapshot(snap=>{
     reqs=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
     renderAll();if(docsFor)renderDocs();sweepExpired();
   },e=>{console.error("solicitudes",e);toast("Error al cargar solicitudes")});
-  setInterval(()=>{renderCal();renderMine();renderPend();renderList();renderDay();sweepExpired()},60000);
+  setInterval(()=>{renderBell();renderCal();renderMine();renderPend();renderList();renderDay();sweepExpired()},60000);
 })();
 })();
 </script>
