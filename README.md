@@ -44,3 +44,4 @@ Verde disponible · Amarillo apartado (48 h para autorizar) · Rojo autorizado �
 
 - Las contraseñas se guardan como hash SHA-256; el control de roles vive en la página. La configuración de Firebase es pública por diseño; las reglas incluidas son abiertas para las pruebas internas y conviene restringirlos antes de un uso definitivo.
 - Si `FIREBASE_CONFIG` queda vacío, la app funciona en **modo local** (datos solo en ese navegador), útil para probar el diseño.
+Publicado el 14 de octubre de 2026
