@@ -38,6 +38,7 @@ window.FIREBASE_CONFIG = {
   --verde:#2F9E5B;--amarillo:#F2C230;--rojo:#D8403A;
   --verde-tint:#DDF3E5;--amarillo-tint:#FBEFC2;--rojo-tint:#F8D7D4;
   --azul:#2F6FD8;--azul-tint:#D9E6FA;
+  --tl:#7C3AED;--mamparas:#0E9F9E;--muura:#F97316;
   --focus:#1B1E1A;
 }
 @media (prefers-color-scheme:dark){
@@ -105,8 +106,17 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .chip.amarillo{background:var(--amarillo);color:#2A2200}
 .chip.rojo{background:var(--rojo)}
 .chip.azul{background:var(--azul)}
+.chip.fam-tl{background:var(--tl)}.chip.fam-mamparas{background:var(--mamparas)}.chip.fam-muura{background:var(--muura)}
+.chip .st{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:middle;background:rgba(255,255,255,.85)}
+.chip.st-amarillo .st{background:var(--amarillo)}.chip.st-rojo .st{background:var(--rojo)}.chip.st-azul .st{background:#fff}
+.fam{color:#fff;border:0}.fam.fam-tl{background:var(--tl)}.fam.fam-mamparas{background:var(--mamparas)}.fam.fam-muura{background:var(--muura)}
+.sw.fam-tl{background:var(--tl)}.sw.fam-mamparas{background:var(--mamparas)}.sw.fam-muura{background:var(--muura)}
+.resumen{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 10px}
+.resumen span{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;color:#fff}
+.resumen .tot{background:var(--ink);color:var(--bg)}
+.resumen .fam-tl{background:var(--tl)}.resumen .fam-mamparas{background:var(--mamparas)}.resumen .fam-muura{background:var(--muura)}
 .more{font-size:11px;color:var(--muted);font-weight:600}
-@media (max-width:600px){.day{min-height:58px;padding:4px}.chip,.more{display:none}.dot-row{display:flex;gap:3px;flex-wrap:wrap}.dot{width:7px;height:7px;border-radius:50%}.dot.amarillo{background:var(--amarillo)}.dot.rojo{background:var(--rojo)}.dot.azul{background:var(--azul)}}
+@media (max-width:600px){.day{min-height:58px;padding:4px}.chip,.more{display:none}.dot-row{display:flex;gap:3px;flex-wrap:wrap}.dot{width:7px;height:7px;border-radius:50%}.dot.amarillo{background:var(--amarillo)}.dot.rojo{background:var(--rojo)}.dot.azul{background:var(--azul)}.dot.fam-tl{background:var(--tl)}.dot.fam-mamparas{background:var(--mamparas)}.dot.fam-muura{background:var(--muura)}}
 @media (min-width:601px){.dot-row{display:none}}
 
 .legend{display:flex;gap:16px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
@@ -264,6 +274,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <span><i class="sw azul"></i>Documentación completa</span>
         <span><i class="sw cerrado"></i>Fin de semana (solo si Admin lo libera)</span>
       </div>
+      <div class="legend" style="padding-top:0;border-top:0">
+        <span style="font-weight:700">Familia:</span>
+        <span><i class="sw fam-tl"></i>TL</span>
+        <span><i class="sw fam-mamparas"></i>Mamparas</span>
+        <span><i class="sw fam-muura"></i>Muura</span>
+      </div>
     </section>
 
     <aside class="side">
@@ -386,6 +402,7 @@ async function toggleLiberado(s){
   const next=liberados.includes(s)?liberados.filter(x=>x!==s):liberados.concat([s]);
   try{await db.doc("config/finesLiberados").set({fechas:next,por:perfil,en:new Date().toISOString()});toast(liberados.includes(s)?"Día bloqueado de nuevo":"Día liberado para programar")}catch(e){toast("No se pudo guardar")}
 }
+function famClass(f){return "fam-"+String(f||"").toLowerCase().replace(/[^a-z]/g,"")}
 function docsComplete(r){return DOCS_REQ.every(k=>r.docs&&r.docs[k]&&r.docs[k].url)}
 function isActive(r){const s=efState(r);return s==="apartado"||s==="autorizado"}
 function covers(r,day){return r.inicio<=day&&day<=r.fin}
@@ -424,9 +441,9 @@ function renderCal(){
     b.className="day "+color+(d.getMonth()!==view.getMonth()?" other":"")+(s===today?" today":"")+(s<today?" past":"")+(s===selected?" sel":"");
     b.setAttribute("aria-label",s);
     let html='<div class="n"><span>'+d.getDate()+'</span></div>';
-    act.slice(0,2).forEach(r=>{html+='<span class="chip '+(docsComplete(r)?"azul":efState(r)==="autorizado"?"rojo":"amarillo")+'" title="'+esc(r.proyecto)+'">'+esc(r.proyecto)+'</span>'});
-    if(act.length>2)html+='<span class="more">+'+(act.length-2)+' más</span>';
-    html+='<div class="dot-row">'+act.map(r=>'<i class="dot '+(docsComplete(r)?"azul":efState(r)==="autorizado"?"rojo":"amarillo")+'"></i>').join("")+'</div>';
+    act.slice(0,3).forEach(r=>{const st=docsComplete(r)?"azul":efState(r)==="autorizado"?"rojo":"amarillo";html+='<span class="chip '+famClass(r.familia)+' st-'+st+'" title="'+esc(r.familia)+' · '+esc(r.proyecto)+'"><i class="st"></i>'+esc(r.familia)+' · '+esc(r.proyecto)+'</span>'});
+    if(act.length>3)html+='<span class="more">+'+(act.length-3)+' más</span>';
+    html+='<div class="dot-row">'+act.map(r=>'<i class="dot '+famClass(r.familia)+'"></i>').join("")+'</div>';
     b.innerHTML=html;
     b.onclick=()=>{selected=s;if(d.getMonth()!==view.getMonth()){view=new Date(d.getFullYear(),d.getMonth(),1)}renderCal();renderDay()};
     g.appendChild(b);
@@ -450,7 +467,7 @@ function reqHtml(r,opts){
   opts=opts||{};
   const s=efState(r);
   let h='<div class="req"><div class="t"><span>'+esc(r.proyecto)+'</span>'+stateTag(r)+'</div>';
-  h+='<div class="m"><span class="fam">'+esc(r.familia)+'</span>'+esc(r.solicitante)+' · '+fmtRange(r.inicio,r.fin)+'</div>';
+  h+='<div class="m"><span class="fam '+famClass(r.familia)+'">'+esc(r.familia)+'</span>'+esc(r.solicitante)+' · '+fmtRange(r.inicio,r.fin)+'</div>';
   if(s==="apartado"){const left=Math.max(0,r.creadoEn?Date.parse(r.creadoEn)+H48-Date.now():0);h+='<div class="m">Se libera en '+Math.floor(left/3600000)+' h '+Math.floor(left%3600000/60000)+' min si no se autoriza</div>'}
   if(can.docs(r)&&isActive(r))h+=docsHtml(r);
   const btns=[];
@@ -473,7 +490,12 @@ function renderDay(){
     body.innerHTML=(cerrado?"Fin de semana: bloqueado para programar.":"Disponible.")+(perfil&&!cerrado&&selected>=todayStr()?' <button class="btn sm" id="dayNew">Apartar este día</button>':"")
       +(can.manage()&&esFinDeSemana(selected)?' <button class="btn sm" id="dayLib">'+(cerrado?"Liberar este día":"Bloquear de nuevo")+'</button>':"");
   }
-  else{body.className="";body.innerHTML=list.map(r=>reqHtml(r)).join("")}
+  else{
+    const porFam={};list.forEach(r=>{porFam[r.familia]=(porFam[r.familia]||0)+1});
+    let res='<div class="resumen"><span class="tot">'+list.length+(list.length===1?" instalación":" instalaciones")+'</span>'+Object.keys(porFam).map(f=>'<span class="'+famClass(f)+'">'+esc(f)+(porFam[f]>1?" × "+porFam[f]:"")+'</span>').join("")+'</div>';
+    const libre=perfil&&!esFinCerrado(selected)&&selected>=todayStr()?'<div class="m" style="margin-top:10px"><button class="btn sm" id="dayNew">Apartar este día para otra familia</button></div>':"";
+    body.className="";body.innerHTML=res+list.sort((a,b)=>a.familia<b.familia?-1:1).map(r=>reqHtml(r)).join("")+libre;
+  }
   const nb=$("#dayNew");if(nb)nb.onclick=()=>openForm(selected);
   const lb=$("#dayLib");if(lb)lb.onclick=()=>toggleLiberado(selected);
 }
@@ -604,8 +626,8 @@ document.addEventListener("click",async e=>{
   b.disabled=true;
   try{
     if(b.dataset.a==="autorizar"){
-      const clash=reqs.find(o=>o.id!==r.id&&efState(o)==="autorizado"&&overlaps(o.inicio,o.fin,r.inicio,r.fin));
-      if(clash&&!await ask("Ya hay una instalación autorizada en esas fechas ("+clash.proyecto+"). ¿Autorizar de todos modos?")){b.disabled=false;return}
+      const clash=reqs.find(o=>o.id!==r.id&&o.familia===r.familia&&efState(o)==="autorizado"&&overlaps(o.inicio,o.fin,r.inicio,r.fin));
+      if(clash&&!await ask("Ya hay una instalación de "+r.familia+" autorizada en esas fechas ("+clash.proyecto+"). ¿Autorizar de todos modos?")){b.disabled=false;return}
       await ref.update({estado:"autorizado",autorizadoPor:perfil,autorizadoEn:now});toast("Autorizada")}
     else if(b.dataset.a==="rechazar"){await ref.update({estado:"rechazado",autorizadoPor:perfil,autorizadoEn:now});toast("Rechazada")}
     else if(b.dataset.a==="cancelar"){if(!await ask("¿Cancelar la instalación de "+r.proyecto+"?")){b.disabled=false;return}await ref.update({estado:"cancelado",canceladoPor:perfil,canceladoEn:now});toast("Cancelada")}
@@ -636,8 +658,8 @@ $("#fSave").onclick=async()=>{
   if(ini<todayStr())return err.textContent="No se pueden apartar fechas pasadas.";
   const cerrados=diasEntre(ini,fin).filter(esFinCerrado);
   if(cerrados.length)return err.textContent="No se puede programar en sábado o domingo ("+cerrados.map(fmt).join(", ")+") a menos que Admin libere ese día desde el calendario.";
-  const clash=reqs.find(r=>isActive(r)&&overlaps(r.inicio,r.fin,ini,fin));
-  if(clash)return err.textContent="Esas fechas ya están "+(efState(clash)==="autorizado"?"ocupadas":"apartadas")+" por "+clash.proyecto+" ("+fmtRange(clash.inicio,clash.fin)+").";
+  const clash=reqs.find(r=>isActive(r)&&r.familia===famSel&&overlaps(r.inicio,r.fin,ini,fin));
+  if(clash)return err.textContent="Ya hay una instalación de "+famSel+" en esas fechas: "+clash.proyecto+" ("+fmtRange(clash.inicio,clash.fin)+"). Elige otras fechas u otra familia.";
   if(!db)return err.textContent="Sin conexión a la base de datos.";
   $("#fSave").disabled=true;
   try{
