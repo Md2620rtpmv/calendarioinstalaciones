@@ -37,19 +37,19 @@ window.FIREBASE_CONFIG = {
   --bg:#F5F6F3;--panel:#FFFFFF;--ink:#1B1E1A;--muted:#6A706A;--line:#D8DCD5;--soft:#ECEFEA;
   --verde:#2F9E5B;--amarillo:#F2C230;--rojo:#D8403A;
   --verde-tint:#DDF3E5;--amarillo-tint:#FBEFC2;--rojo-tint:#F8D7D4;
-  --azul:#2F6FD8;--azul-tint:#D9E6FA;
+  --azul:#2F6FD8;--azul-tint:#D9E6FA;--rosa:#DB2777;--rosa-tint:#FBD5E5;
   --tl:#7C3AED;--mamparas:#0E9F9E;--muura:#F97316;
   --focus:#1B1E1A;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#15171A;--panel:#1E2124;--ink:#EEF0EC;--muted:#9AA09A;--line:#33383C;--soft:#262A2E;
-    --verde-tint:#1F4A31;--amarillo-tint:#5A4A14;--rojo-tint:#5C2521;--azul-tint:#1E3A66;--focus:#EEF0EC;
+    --verde-tint:#1F4A31;--amarillo-tint:#5A4A14;--rojo-tint:#5C2521;--azul-tint:#1E3A66;--rosa-tint:#5A1F3B;--focus:#EEF0EC;
   }
 }
 :root[data-theme="dark"]{
   --bg:#15171A;--panel:#1E2124;--ink:#EEF0EC;--muted:#9AA09A;--line:#33383C;--soft:#262A2E;
-  --verde-tint:#1F4A31;--amarillo-tint:#5A4A14;--rojo-tint:#5C2521;--azul-tint:#1E3A66;--focus:#EEF0EC;
+  --verde-tint:#1F4A31;--amarillo-tint:#5A4A14;--rojo-tint:#5C2521;--azul-tint:#1E3A66;--rosa-tint:#5A1F3B;--focus:#EEF0EC;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
 *,*::before,*::after{box-sizing:inherit}
@@ -98,6 +98,7 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .day.amarillo{background:var(--amarillo-tint)}
 .day.rojo{background:var(--rojo-tint)}
 .day.azul{background:var(--azul-tint)}
+.day.rosa{background:var(--rosa-tint)}
 .day.cerrado{background:var(--soft);color:var(--muted)}
 .day.cerrado .n span::after{content:"";}
 .sw.cerrado{background:var(--line)}
@@ -139,6 +140,10 @@ h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1
 .tag.amarillo{background:var(--amarillo);color:#2A2200}
 .tag.rojo{background:var(--rojo);color:#fff}
 .tag.azul{background:var(--azul);color:#fff}
+.tag.rosa{background:var(--rosa);color:#fff}
+.sw.rosa{background:var(--rosa)}
+.chip.st-rosa .st{background:var(--rosa)}
+.btn.pre{border-color:var(--rosa);color:var(--rosa)}
 .tag.gris{background:var(--soft);color:var(--muted)}
 .fam{display:inline-block;font-size:11px;font-weight:700;border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-right:6px}
 .docs{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
@@ -271,6 +276,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <span><i class="sw verde"></i>Disponible</span>
         <span><i class="sw amarillo"></i>Apartado (pendiente de autorizar)</span>
         <span><i class="sw rojo"></i>No disponible (autorizado)</span>
+        <span><i class="sw rosa"></i>Preautorizado (fecha apartada, faltan docs)</span>
         <span><i class="sw azul"></i>Documentación completa</span>
         <span><i class="sw cerrado"></i>Fin de semana (solo si Admin lo libera)</span>
       </div>
@@ -404,7 +410,7 @@ async function toggleLiberado(s){
 }
 function famClass(f){return "fam-"+String(f||"").toLowerCase().replace(/[^a-z]/g,"")}
 function docsComplete(r){return DOCS_REQ.every(k=>r.docs&&r.docs[k]&&r.docs[k].url)}
-function isActive(r){const s=efState(r);return s==="apartado"||s==="autorizado"}
+function isActive(r){const s=efState(r);return s==="apartado"||s==="preautorizado"||s==="autorizado"}
 function covers(r,day){return r.inicio<=day&&day<=r.fin}
 function overlaps(a1,a2,b1,b2){return a1<=b2&&b1<=a2}
 
@@ -436,12 +442,12 @@ function renderCal(){
     const d=new Date(start);d.setDate(start.getDate()+i);const s=toStr(d);
     const act=reqs.filter(r=>isActive(r)&&covers(r,s));
     let color=esFinCerrado(s)?"cerrado":"verde";
-    if(act.some(docsComplete))color="azul";else if(act.some(r=>efState(r)==="autorizado"))color="rojo";else if(act.length)color="amarillo";
+    if(act.some(docsComplete))color="azul";else if(act.some(r=>efState(r)==="autorizado"))color="rojo";else if(act.some(r=>efState(r)==="preautorizado"))color="rosa";else if(act.length)color="amarillo";
     const b=document.createElement("button");
     b.className="day "+color+(d.getMonth()!==view.getMonth()?" other":"")+(s===today?" today":"")+(s<today?" past":"")+(s===selected?" sel":"");
     b.setAttribute("aria-label",s);
     let html='<div class="n"><span>'+d.getDate()+'</span></div>';
-    act.slice(0,3).forEach(r=>{const st=docsComplete(r)?"azul":efState(r)==="autorizado"?"rojo":"amarillo";html+='<span class="chip '+famClass(r.familia)+' st-'+st+'" title="'+esc(r.familia)+' · '+esc(r.proyecto)+'"><i class="st"></i>'+esc(r.familia)+' · '+esc(r.proyecto)+'</span>'});
+    act.slice(0,3).forEach(r=>{const st=docsComplete(r)?"azul":efState(r)==="autorizado"?"rojo":efState(r)==="preautorizado"?"rosa":"amarillo";html+='<span class="chip '+famClass(r.familia)+' st-'+st+'" title="'+esc(r.familia)+' · '+esc(r.proyecto)+'"><i class="st"></i>'+esc(r.familia)+' · '+esc(r.proyecto)+'</span>'});
     if(act.length>3)html+='<span class="more">+'+(act.length-3)+' más</span>';
     html+='<div class="dot-row">'+act.map(r=>'<i class="dot '+famClass(r.familia)+'"></i>').join("")+'</div>';
     b.innerHTML=html;
@@ -452,7 +458,7 @@ function renderCal(){
 
 function stateTag(r){
   const s=efState(r);
-  const map={apartado:["amarillo","Apartado"],autorizado:["rojo","Autorizado"],liberado:["gris","Liberado (48 h)"],rechazado:["gris","Rechazado"],cancelado:["gris","Cancelado"]};
+  const map={apartado:["amarillo","Apartado"],preautorizado:["rosa","Preautorizado"],autorizado:["rojo","Autorizado"],liberado:["gris","Liberado (48 h)"],rechazado:["gris","Rechazado"],cancelado:["gris","Cancelado"]};
   const [c,t]=map[s]||["gris",s];return '<span class="tag '+c+'">'+t+'</span>'+(isActive(r)&&docsComplete(r)?' <span class="tag azul">Docs completos</span>':'');
 }
 function docsHtml(r){
@@ -468,10 +474,13 @@ function reqHtml(r,opts){
   const s=efState(r);
   let h='<div class="req"><div class="t"><span>'+esc(r.proyecto)+'</span>'+stateTag(r)+'</div>';
   h+='<div class="m"><span class="fam '+famClass(r.familia)+'">'+esc(r.familia)+'</span>'+esc(r.solicitante)+' · '+fmtRange(r.inicio,r.fin)+'</div>';
+  if(s==="preautorizado"&&!docsComplete(r))h+='<div class="m">Fecha apartada en firme · faltan '+DOCS_REQ.filter(k=>!(r.docs&&r.docs[k]&&r.docs[k].url)).join(", ")+'</div>';
   if(s==="apartado"){const left=Math.max(0,r.creadoEn?Date.parse(r.creadoEn)+H48-Date.now():0);h+='<div class="m">Se libera en '+Math.floor(left/3600000)+' h '+Math.floor(left%3600000/60000)+' min si no se autoriza</div>'}
   if(can.docs(r)&&isActive(r))h+=docsHtml(r);
   const btns=[];
-  if(s==="apartado"&&can.approve()){btns.push('<button class="btn sm ok" data-a="autorizar" data-id="'+r.id+'">Autorizar</button>');btns.push('<button class="btn sm no" data-a="rechazar" data-id="'+r.id+'">Rechazar</button>')}
+  if((s==="apartado"||s==="preautorizado")&&can.approve()){
+    if(s==="apartado")btns.push('<button class="btn sm pre" data-a="preautorizar" data-id="'+r.id+'">Preautorizar</button>');
+    btns.push('<button class="btn sm ok" data-a="autorizar" data-id="'+r.id+'">Autorizar</button>');btns.push('<button class="btn sm no" data-a="rechazar" data-id="'+r.id+'">Rechazar</button>')}
   if(isActive(r)&&can.docs(r))btns.push('<button class="btn sm" data-a="docs" data-id="'+r.id+'">Documentos</button>');
   if(isActive(r)&&can.cancel())btns.push('<button class="btn sm" data-a="cancelar" data-id="'+r.id+'">Cancelar</button>');
   if(can.manage()&&!opts.noDelete)btns.push('<button class="btn sm" data-a="borrar" data-id="'+r.id+'">Borrar</button>');
@@ -505,7 +514,7 @@ function renderMine(){
   $("#mineBody").innerHTML=list.map(r=>reqHtml(r,{noDelete:true})).join("");
 }
 function renderPend(){
-  const list=reqs.filter(r=>efState(r)==="apartado").sort((a,b)=>a.inicio<b.inicio?-1:1);
+  const list=reqs.filter(r=>["apartado","preautorizado"].includes(efState(r))).sort((a,b)=>a.inicio<b.inicio?-1:1);
   $("#pendCount").textContent=list.length||"";
   const tc=$("#tabCnt");tc.hidden=!(can.approve()&&list.length);tc.textContent=list.length;
   const b=$("#pendBody");
@@ -629,6 +638,10 @@ document.addEventListener("click",async e=>{
       const clash=reqs.find(o=>o.id!==r.id&&o.familia===r.familia&&efState(o)==="autorizado"&&overlaps(o.inicio,o.fin,r.inicio,r.fin));
       if(clash&&!await ask("Ya hay una instalación de "+r.familia+" autorizada en esas fechas ("+clash.proyecto+"). ¿Autorizar de todos modos?")){b.disabled=false;return}
       await ref.update({estado:"autorizado",autorizadoPor:perfil,autorizadoEn:now});toast("Autorizada")}
+    else if(b.dataset.a==="preautorizar"){
+      const clash=reqs.find(o=>o.id!==r.id&&o.familia===r.familia&&["preautorizado","autorizado"].includes(efState(o))&&overlaps(o.inicio,o.fin,r.inicio,r.fin));
+      if(clash&&!await ask("Ya hay una instalación de "+r.familia+" apartada en firme en esas fechas ("+clash.proyecto+"). ¿Preautorizar de todos modos?")){b.disabled=false;return}
+      await ref.update({estado:"preautorizado",preautorizadoPor:perfil,preautorizadoEn:now});toast("Preautorizada: fecha apartada, pendiente de documentos")}
     else if(b.dataset.a==="rechazar"){await ref.update({estado:"rechazado",autorizadoPor:perfil,autorizadoEn:now});toast("Rechazada")}
     else if(b.dataset.a==="cancelar"){if(!await ask("¿Cancelar la instalación de "+r.proyecto+"?")){b.disabled=false;return}await ref.update({estado:"cancelado",canceladoPor:perfil,canceladoEn:now});toast("Cancelada")}
     else if(b.dataset.a==="borrar"){if(!await ask("¿Borrar definitivamente "+r.proyecto+"? Esta acción no se puede deshacer.")){b.disabled=false;return}await ref.delete();toast("Borrada")}
