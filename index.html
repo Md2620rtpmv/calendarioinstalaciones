@@ -699,7 +699,7 @@ $("#dRows").addEventListener("change",async e=>{
     const up=await assets.upload(f);
     await saveDoc(k,{tipo:"archivo",url:up.url,id:up.id,nombre:f.name});
     $("#dErr").textContent="";toast(k+" subido");
-  }catch(err){$("#dErr").textContent="No se pudo subir ("+(err&&err.code||"error")+"). Si no tienes permiso de Editor, pega un enlace en su lugar."}
+  }catch(err){$("#dErr").textContent="No se pudo subir. "+(err&&err.code||"")+" Mientras tanto puedes pegar un enlace (Drive, SharePoint, etc.)."}
 });
 
 // ----- liberación automática en base de datos -----
@@ -741,7 +741,9 @@ if(!(window.claude&&window.claude.use)&&window.FIREBASE_CONFIG&&window.FIREBASE_
   const fbUser={id:async()=>devId,isOwner:async()=>false,can:async()=>true,profiles:async()=>({})};
   let fbAssets=null;
   if(window.FIREBASE_CONFIG.storageBucket&&firebase.storage){
-    fbAssets={upload:async f=>{try{const path="documentos/"+Date.now()+"-"+f.name.replace(/[^\w.\-]+/g,"_");const ref=firebase.storage().ref(path);await ref.put(f);const url=await ref.getDownloadURL();return {id:path,url:url}}catch(e){fail(e)}}};
+    const st=firebase.storage();try{st.setMaxUploadRetryTime(30000);st.setMaxOperationRetryTime(30000)}catch(e){}
+    const MSG={"storage/unauthorized":"Las reglas de Storage no permiten subir. Pega storage.rules en Firebase → Storage → Reglas.","storage/retry-limit-exceeded":"Storage no responde: revisa que esté activado en Firebase (Compilación → Storage → Comenzar).","storage/unknown":"Storage no responde: revisa que esté activado en Firebase (Compilación → Storage → Comenzar).","storage/project-not-found":"El bucket de Storage no existe en este proyecto.","storage/bucket-not-found":"El bucket de Storage no existe: actívalo en Firebase → Storage.","storage/quota-exceeded":"Se agotó la cuota gratuita de Storage."};
+    fbAssets={upload:async f=>{try{const path="documentos/"+Date.now()+"-"+f.name.replace(/[^\w.\-]+/g,"_");const ref=st.ref(path);await ref.put(f);const url=await ref.getDownloadURL();return {id:path,url:url}}catch(e){const err=new Error(MSG[e&&e.code]||(e&&e.message)||"error");err.code=MSG[e&&e.code]||(e&&e.code)||"error";throw err}}};
   }
   window.claude={use:async n=>n==="db"?fbDb:n==="user"?fbUser:n==="assets"?fbAssets:null};
   window.MODO_FIREBASE=true;
