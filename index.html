@@ -174,7 +174,11 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .ulist .u{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap}
 .ulist .u .nm{color:var(--muted);font-size:13px}
 .ulist .u .set{display:flex;gap:6px}
-.ulist .u input{border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);width:150px;font-size:13px}
+.ulist .u{border-top:1px solid var(--line);padding-top:10px}
+.ulist .u:first-child{border-top:0;padding-top:0}
+.ulist .u .rol{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--soft);color:var(--ink);margin-left:6px}
+.ulist .u.off{opacity:.55}
+.ulist .u .set{display:flex;gap:6px;flex-wrap:wrap}
 .docrow{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
 .docrow:first-child{border-top:0}
 .docrow .k{font-weight:700;font-size:14px}
@@ -293,7 +297,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="card" id="pendCard" hidden><h3>Por autorizar <small id="pendCount"></small></h3><div id="pendBody" class="empty">Sin solicitudes pendientes.</div></div>
       <div class="card" id="listCard" hidden><h3>Instalaciones reservadas <small id="listCount"></small></h3><p class="sub">Apartadas y autorizadas con fecha por venir. Adjunta aquí la documentación del proyecto y las fotos de obra.</p><div id="listBody" class="empty">Nada reservado todavía.</div></div>
       <div class="card" id="nextCard"><h3>Próximas instalaciones</h3><div id="nextBody" class="empty">Nada programado todavía.</div></div>
-      <div class="card" id="usersCard" hidden><h3>Usuarios</h3><p class="sub">Define o cambia la contraseña de cada usuario.</p><div id="usersBody" class="ulist"></div><div class="logo-set" style="display:block"><div style="font-weight:700;margin-bottom:6px">Repositorio de documentos (SharePoint)</div><div style="display:flex;gap:6px;flex-wrap:wrap"><input type="url" id="spUrl" placeholder="https://… enlace a la carpeta" style="flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"><button class="btn sm" id="spSave" type="button">Guardar</button></div><div style="color:var(--muted);margin-top:4px">Aparecerá como botón en la ventana de documentos.</div></div>
+      <div class="card" id="usersCard" hidden><h3>Usuarios <small id="usersCount"></small></h3><p class="sub">Crea, modifica o desactiva usuarios y define su rol.</p><div id="usersBody" class="ulist"></div><div style="margin-top:12px"><button class="btn sm primary" id="userNew" type="button">+ Nuevo usuario</button></div></div>
+      <div class="card" id="configCard" hidden><h3>Configuración</h3><div class="logo-set" style="display:block;margin-top:0;padding-top:0;border-top:0"><div style="font-weight:700;margin-bottom:6px">Repositorio de documentos (SharePoint)</div><div style="display:flex;gap:6px;flex-wrap:wrap"><input type="url" id="spUrl" placeholder="https://… enlace a la carpeta" style="flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"><button class="btn sm" id="spSave" type="button">Guardar</button></div><div style="color:var(--muted);margin-top:4px">Aparecerá como botón en la ventana de documentos.</div></div>
       <div class="logo-set"><img id="logoPrev" alt="" hidden><label class="btn sm">Subir logo Modumex<input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp"></label><button class="btn sm" id="logoDel" type="button" hidden>Quitar logo</button><span style="color:var(--muted)">Se mostrará en el inicio de sesión.</span></div></div>
     </aside>
   </div>
@@ -320,7 +325,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="wordmark" id="wordmark">MODUMEX</div>
       <div class="tag">Calendario de instalaciones</div>
     </div>
-    <div class="field"><label for="lUser">Usuario</label><select id="lUser"><option value="admin">Admin</option><option value="oceja">oceja</option><option value="oquezada">oquezada</option><option value="comercial">comercial</option></select></div>
+    <div class="field"><label for="lUser">Usuario</label><input id="lUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
     <div class="field"><label for="lPass">Contraseña</label><input id="lPass" type="password" autocomplete="current-password"></div>
     <div class="err" id="lErr"></div>
     <button class="btn primary" id="lGo" type="button">Entrar</button>
@@ -342,6 +347,16 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <div id="alBody" class="empty">Sin novedades.</div>
   <div class="actions"><button class="btn" id="alRead" type="button">Marcar todo como leído</button><button class="btn primary" id="alClose" type="button">Cerrar</button></div>
 </div></dialog>
+<dialog id="userDlg"><div class="dlg">
+  <h2 id="uTitle">Nuevo usuario</h2>
+  <p class="sub">El usuario es con el que inicia sesión (sin espacios). La contraseña la puede cambiar después el Admin.</p>
+  <div class="field"><label for="uUser">Usuario <i>*</i></label><input id="uUser" maxlength="30" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+  <div class="field"><label for="uNombre">Nombre completo <i>*</i></label><input id="uNombre" maxlength="60" autocomplete="off"></div>
+  <div class="field"><label for="uRol">Rol <i>*</i></label><select id="uRol"></select><div id="uRolHelp" style="color:var(--muted);font-size:13px"></div></div>
+  <div class="field"><label for="uPass" id="uPassLabel">Contraseña <i>*</i></label><input id="uPass" type="password" autocomplete="new-password"></div>
+  <div class="err" id="uErr"></div>
+  <div class="actions"><button class="btn" id="uCancel" type="button">Cancelar</button><button class="btn primary" id="uSave" type="button">Guardar</button></div>
+</div></dialog>
 <dialog id="confirmDlg"><div class="dlg">
   <h2 id="cfTitle">¿Confirmas?</h2>
   <p class="sub" id="cfMsg"></p>
@@ -354,7 +369,13 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 (function(){
 "use strict";
 const $=s=>document.querySelector(s);
-const PERFILES={admin:"Admin",oceja:"oceja",oquezada:"oquezada",comercial:"comercial"};
+const ROLES={admin:"Administrador",autoriza:"Autoriza",edita:"Edita",solicita:"Solicita",lector:"Solo lectura"};
+const ROL_HELP={admin:"Todo: autoriza, cancela, borra, usuarios y configuración.",autoriza:"Preautoriza, autoriza, rechaza y cancela; carga documentos.",edita:"Cancela y carga documentos de cualquier solicitud.",solicita:"Levanta solicitudes y carga los documentos de las suyas.",lector:"Solo consulta el calendario."};
+const ROL_LEGADO={admin:"admin",oceja:"autoriza",oquezada:"edita",comercial:"solicita"};
+let usuarios={};          // id -> {nombre, rol, activo, hash}
+function rolDe(p){if(!p)return null;const u=usuarios[p];if(u&&u.rol)return u.rol;return ROL_LEGADO[p]||"lector"}
+function nombreDe(p){const u=usuarios[p];return (u&&u.nombre)||(p==="admin"?"Admin":p)}
+function activoDe(p){const u=usuarios[p];return !u||u.activo!==false}
 const DOCS=["EXP","PLANOS","AYUDAS","ESPECIFICACIONES","FOTOS OBRA"];
 const DOCS_REQ=["EXP","PLANOS","AYUDAS","ESPECIFICACIONES"]; // los que hacen falta para el azul
 const H48=48*3600*1000;
@@ -390,12 +411,13 @@ function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null
 
 // ----- permisos de la app -----
 const can={
-  approve:()=>["admin","oceja"].includes(perfil),
-  cancel:()=>["admin","oceja","oquezada"].includes(perfil),
-  team:()=>["admin","oceja","oquezada"].includes(perfil),
-  docs:r=>["admin","oceja","oquezada"].includes(perfil)||(!!uid&&r&&r.creadoPor===uid),
+  create:()=>!!perfil&&rolDe(perfil)!=="lector",
+  approve:()=>["admin","autoriza"].includes(rolDe(perfil)),
+  cancel:()=>["admin","autoriza","edita"].includes(rolDe(perfil)),
+  team:()=>["admin","autoriza","edita"].includes(rolDe(perfil)),
+  docs:r=>["admin","autoriza","edita"].includes(rolDe(perfil))||can.mine(r),
   mine:r=>(!!perfil&&r.creadoPorPerfil===perfil)||(!!uid&&r.creadoPor===uid),
-  manage:()=>perfil==="admin"
+  manage:()=>rolDe(perfil)==="admin"
 };
 
 // ----- estado efectivo (48h) -----
@@ -420,12 +442,13 @@ function overlaps(a1,a2,b1,b2){return a1<=b2&&b1<=a2}
 function renderWho(){
   const w=$("#who");const ta=$("#topActions");ta.innerHTML="";
   if(!db){w.textContent="No se pudo conectar a la base de datos. Inicia sesión en claude.ai e intenta de nuevo.";return}
-  if(perfil) w.innerHTML="Sesión: <b>"+esc(PERFILES[perfil])+"</b>"+(perfil==="comercial"?" · solo consulta":"");
+  if(perfil) w.innerHTML="Sesión: <b>"+esc(nombreDe(perfil))+"</b> · "+esc(ROLES[rolDe(perfil)]||"");
   else w.textContent="Inicia sesión para continuar.";
   const bell=document.createElement("button");bell.id="bell";bell.className="bell";bell.type="button";bell.setAttribute("aria-label","Alertas");bell.innerHTML='🔔<span class="bd" hidden></span>';bell.onclick=openAlerts;ta.appendChild(bell);
-  if(perfil){const nb=document.createElement("button");nb.className="btn primary";nb.textContent="Levantar solicitud";nb.onclick=()=>openForm();ta.appendChild(nb);
+  if(can.create()){const nb=document.createElement("button");nb.className="btn primary";nb.textContent="Levantar solicitud";nb.onclick=()=>openForm();ta.appendChild(nb)}
+  if(perfil){
     const lb=document.createElement("button");lb.className="btn";lb.textContent="Cerrar sesión";lb.onclick=logout;ta.appendChild(lb)}
-  $("#usersCard").hidden=!can.manage();
+  $("#usersCard").hidden=!can.manage();$("#configCard").hidden=!can.manage();
   $("#pendCard").hidden=!can.approve();
   $("#listCard").hidden=!can.team();
   const n=$("#notice");
@@ -498,13 +521,13 @@ function renderDay(){
   if(!list.length){
     const cerrado=esFinCerrado(selected);
     body.className="empty";
-    body.innerHTML=(cerrado?"Fin de semana: bloqueado para programar.":"Disponible.")+(perfil&&!cerrado&&selected>=todayStr()?' <button class="btn sm" id="dayNew">Apartar este día</button>':"")
+    body.innerHTML=(cerrado?"Fin de semana: bloqueado para programar.":"Disponible.")+(can.create()&&!cerrado&&selected>=todayStr()?' <button class="btn sm" id="dayNew">Apartar este día</button>':"")
       +(can.manage()&&esFinDeSemana(selected)?' <button class="btn sm" id="dayLib">'+(cerrado?"Liberar este día":"Bloquear de nuevo")+'</button>':"");
   }
   else{
     const porFam={};list.forEach(r=>{porFam[r.familia]=(porFam[r.familia]||0)+1});
     let res='<div class="resumen"><span class="tot">'+list.length+(list.length===1?" instalación":" instalaciones")+'</span>'+Object.keys(porFam).map(f=>'<span class="'+famClass(f)+'">'+esc(f)+(porFam[f]>1?" × "+porFam[f]:"")+'</span>').join("")+'</div>';
-    const libre=perfil&&!esFinCerrado(selected)&&selected>=todayStr()?'<div class="m" style="margin-top:10px"><button class="btn sm" id="dayNew">Apartar este día para otra familia</button></div>':"";
+    const libre=can.create()&&!esFinCerrado(selected)&&selected>=todayStr()?'<div class="m" style="margin-top:10px"><button class="btn sm" id="dayNew">Apartar este día para otra familia</button></div>':"";
     body.className="";body.innerHTML=res+list.sort((a,b)=>a.familia<b.familia?-1:1).map(r=>reqHtml(r)).join("")+libre;
   }
   const nb=$("#dayNew");if(nb)nb.onclick=()=>openForm(selected);
@@ -537,18 +560,57 @@ function renderNext(){
 }
 function renderUsers(){
   if(!can.manage())return;
+  const ids=Object.keys(usuarios);["admin"].forEach(x=>{if(!ids.includes(x))ids.push(x)});
+  ids.sort((a,b)=>(rolDe(a)==="admin"?0:1)-(rolDe(b)==="admin"?0:1)||nombreDe(a).localeCompare(nombreDe(b)));
+  $("#usersCount").textContent=ids.length;
   const b=$("#usersBody");b.innerHTML="";
-  Object.keys(PERFILES).forEach(p=>{
-    const row=document.createElement("div");row.className="u";
-    row.innerHTML='<span><b>'+esc(PERFILES[p])+'</b> <span class="nm">'+(creds[p]?"con contraseña":"sin contraseña")+(p==="admin"&&!creds.admin?" · hasta definirla, el dueño del artefacto entra sin ella":"")+'</span></span>';
+  ids.forEach(p=>{
+    const u=usuarios[p]||{};const act=activoDe(p);
+    const row=document.createElement("div");row.className="u"+(act?"":" off");
+    row.innerHTML='<span><b>'+esc(nombreDe(p))+'</b> <span class="nm">@'+esc(p)+'</span><span class="rol">'+esc(ROLES[rolDe(p)]||rolDe(p))+'</span>'+(u.hash?"":' <span class="nm">· sin contraseña</span>')+(act?"":' <span class="nm">· desactivado</span>')+'</span>';
     const set=document.createElement("div");set.className="set";
-    const inp=document.createElement("input");inp.type="password";inp.placeholder="Nueva contraseña";inp.autocomplete="new-password";
-    const btn=document.createElement("button");btn.className="btn sm";btn.textContent="Guardar";
-    btn.onclick=async()=>{const v=inp.value;if(v.length<4){toast("Mínimo 4 caracteres");return}btn.disabled=true;
-      try{const h=await sha(p+":"+v);await db.doc("usuarios/"+p).set({hash:h,actualizadoEn:new Date().toISOString()});if(p===perfil)store("sesion",{perfil:p,hash:h});inp.value="";toast("Contraseña guardada para "+PERFILES[p])}catch(e){toast("No se pudo guardar")}btn.disabled=false};
-    set.appendChild(inp);set.appendChild(btn);row.appendChild(set);b.appendChild(row);
+    const ed=document.createElement("button");ed.className="btn sm";ed.textContent="Editar";ed.onclick=()=>openUser(p);set.appendChild(ed);
+    if(p!==perfil&&p!=="admin"){
+      const tg=document.createElement("button");tg.className="btn sm";tg.textContent=act?"Desactivar":"Activar";
+      tg.onclick=async()=>{try{await db.doc("usuarios/"+p).update({activo:!act,actualizadoEn:new Date().toISOString()});toast(act?"Usuario desactivado":"Usuario activado")}catch(e){toast("No se pudo guardar")}};set.appendChild(tg);
+      const del=document.createElement("button");del.className="btn sm no";del.textContent="Eliminar";
+      del.onclick=async()=>{if(!await ask("¿Eliminar al usuario "+nombreDe(p)+" (@"+p+")? Ya no podrá iniciar sesión."))return;try{await db.doc("usuarios/"+p).delete();toast("Usuario eliminado")}catch(e){toast("No se pudo eliminar")}};set.appendChild(del);
+    }
+    row.appendChild(set);b.appendChild(row);
   });
 }
+const udlg=$("#userDlg");let userEditing=null;
+(function(){const sel=$("#uRol");Object.keys(ROLES).forEach(r=>{const o=document.createElement("option");o.value=r;o.textContent=ROLES[r];sel.appendChild(o)});sel.onchange=()=>{$("#uRolHelp").textContent=ROL_HELP[sel.value]||""}})();
+function openUser(p){
+  userEditing=p||null;const u=p?(usuarios[p]||{}):{};
+  $("#uTitle").textContent=p?"Editar usuario":"Nuevo usuario";
+  $("#uUser").value=p||"";$("#uUser").disabled=!!p;
+  $("#uNombre").value=u.nombre||(p?nombreDe(p):"");
+  $("#uRol").value=p?rolDe(p):"solicita";$("#uRol").disabled=p===perfil;$("#uRolHelp").textContent=ROL_HELP[$("#uRol").value];
+  $("#uPass").value="";$("#uPassLabel").innerHTML=p?"Nueva contraseña <span style=\"color:var(--muted);font-weight:500\">(deja vacío para no cambiarla)</span>":"Contraseña <i>*</i>";
+  $("#uErr").textContent="";udlg.showModal();(p?$("#uNombre"):$("#uUser")).focus();
+}
+$("#userNew").onclick=()=>openUser(null);
+$("#uCancel").onclick=()=>udlg.close();
+$("#uSave").onclick=async()=>{
+  const err=$("#uErr");const id=(userEditing||$("#uUser").value).trim().toLowerCase();const nombre=$("#uNombre").value.trim();const rol=$("#uRol").value;const pass=$("#uPass").value;
+  if(!id)return err.textContent="Escribe el usuario.";
+  if(!/^[a-z0-9._-]{2,30}$/.test(id))return err.textContent="El usuario solo puede llevar letras, números, punto, guion o guion bajo (2 a 30 caracteres).";
+  if(!userEditing&&usuarios[id])return err.textContent="Ese usuario ya existe.";
+  if(!nombre)return err.textContent="Escribe el nombre completo.";
+  if(!userEditing&&pass.length<4)return err.textContent="La contraseña debe tener al menos 4 caracteres.";
+  if(pass&&pass.length<4)return err.textContent="La contraseña debe tener al menos 4 caracteres.";
+  const data={nombre:nombre,rol:rol,activo:userEditing?(usuarios[id]?usuarios[id].activo!==false:true):true,actualizadoEn:new Date().toISOString(),actualizadoPor:perfil};
+  if(pass)data.hash=await sha(id+":"+pass);
+  if(!userEditing)data.creadoEn=data.actualizadoEn;
+  $("#uSave").disabled=true;
+  try{
+    if(userEditing)await db.doc("usuarios/"+id).update(data);else await db.doc("usuarios/"+id).set(data);
+    if(pass&&id===perfil)store("sesion",{perfil:id,hash:data.hash});
+    udlg.close();toast(userEditing?"Usuario actualizado":"Usuario creado");
+  }catch(e){err.textContent="No se pudo guardar ("+(e&&e.code||"error")+")."}
+  $("#uSave").disabled=false;
+};
 function applyLogo(){
   const img=$("#logo"),wm=$("#wordmark"),pv=$("#logoPrev"),del=$("#logoDel");
   if(logoData){img.src=logoData;img.hidden=false;wm.hidden=true;pv.src=logoData;pv.hidden=false;del.hidden=false}
@@ -573,7 +635,7 @@ $("#tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-ta
 // ----- alertas dentro de la app -----
 function docsCompletoEn(r){if(!docsComplete(r))return null;return DOCS_REQ.map(k=>r.docs[k].en||"").sort().pop()||r.creadoEn}
 function alertas(){
-  if(!perfil||perfil==="comercial")return [];
+  if(!perfil||rolDe(perfil)==="lector")return [];
   const out=[];
   reqs.forEach(r=>{
     if(can.approve()&&efState(r)==="apartado"&&r.creadoEn)out.push({key:"n:"+r.id,tipo:"nueva",en:r.creadoEn,r});
@@ -586,7 +648,7 @@ function alertas(){
 function tiempoRel(iso){const m=Math.round((Date.now()-Date.parse(iso))/60000);if(m<1)return "ahora";if(m<60)return "hace "+m+" min";const h=Math.round(m/60);if(h<24)return "hace "+h+" h";return "hace "+Math.round(h/24)+" d"}
 function renderBell(){
   const list=alertas(),n=list.filter(a=>a.nuevo).length;
-  const b=$("#bell");if(b){b.hidden=!perfil||perfil==="comercial";const bd=b.querySelector(".bd");bd.hidden=!n;bd.textContent=n}
+  const b=$("#bell");if(b){b.hidden=!perfil||rolDe(perfil)==="lector";const bd=b.querySelector(".bd");bd.hidden=!n;bd.textContent=n}
   document.title=(n?"("+n+") ":"")+"Calendario de instalaciones";
   if(alertKeysKnown){const nuevos=list.filter(a=>a.nuevo&&!alertKeysKnown.has(a.key));if(nuevos.length){const a=nuevos[0];toast((a.tipo==="nueva"?"Nueva solicitud: ":"Documentación completa: ")+a.r.proyecto)}}
   alertKeysKnown=new Set(list.map(a=>a.key));
@@ -612,19 +674,21 @@ function closeLogin(){gate.hidden=true}
 
 $("#lPass").addEventListener("keydown",e=>{if(e.key==="Enter")$("#lGo").click()});
 $("#lGo").onclick=async()=>{
-  const p=$("#lUser").value,v=$("#lPass").value;
+  const p=$("#lUser").value.trim().toLowerCase(),v=$("#lPass").value;
+  if(!p){$("#lErr").textContent="Escribe tu usuario.";return}
+  if(usuarios[p]&&usuarios[p].activo===false){$("#lErr").textContent="Este usuario está desactivado. Consulta al Admin.";return}
   if(!creds[p]){
     if(p==="admin"&&(isOwner||window.MODO_FIREBASE)){perfil="admin";vistoEn=null;alertKeysKnown=null;store("sesion",{perfil:"admin",hash:"owner"});closeLogin();toast("Entraste como Admin. Define tu contraseña en el panel Usuarios.");renderAll();return}
-    $("#lErr").textContent="Este usuario aún no tiene contraseña. Pide al Admin que la defina.";return}
+    $("#lErr").textContent=usuarios[p]?"Este usuario aún no tiene contraseña. Pide al Admin que la defina.":"Usuario no encontrado.";return}
   const h=await sha(p+":"+v);
   if(h!==creds[p]){$("#lErr").textContent="Contraseña incorrecta.";return}
-  perfil=p;vistoEn=(window.__vistos&&window.__vistos[p])||null;alertKeysKnown=null;store("sesion",{perfil:p,hash:h});closeLogin();toast("Bienvenido, "+PERFILES[p]);renderAll();
+  perfil=p;vistoEn=(window.__vistos&&window.__vistos[p])||null;alertKeysKnown=null;store("sesion",{perfil:p,hash:h});closeLogin();toast("Bienvenido, "+nombreDe(p));renderAll();
 };
 function logout(){perfil=null;store("sesion",null);renderAll();openLogin()}
 function restoreSession(){
   const prev=perfil;
   const s=load("sesion");
-  if(s&&s.perfil&&((creds[s.perfil]&&creds[s.perfil]===s.hash)||(s.perfil==="admin"&&(isOwner||window.MODO_FIREBASE)&&!creds.admin&&s.hash==="owner")))perfil=s.perfil;
+  if(s&&s.perfil&&activoDe(s.perfil)&&((creds[s.perfil]&&creds[s.perfil]===s.hash)||(s.perfil==="admin"&&(isOwner||window.MODO_FIREBASE)&&!creds.admin&&s.hash==="owner")))perfil=s.perfil;
   else perfil=null;
   vistoEn=(perfil&&window.__vistos&&window.__vistos[perfil])||null;
   if(prev!==perfil)alertKeysKnown=null;
@@ -744,7 +808,7 @@ $("#dRows").addEventListener("change",async e=>{
 // ----- liberación automática en base de datos -----
 const released=new Set();
 async function sweepExpired(){
-  if(!perfil||perfil==="comercial")return;
+  if(!perfil||rolDe(perfil)==="lector")return;
   for(const r of reqs){
     if(r.estado==="apartado"&&efState(r)==="liberado"&&!released.has(r.id)){
       released.add(r.id);
@@ -826,7 +890,7 @@ renderCal();renderDay();
     const spi=$("#spUrl");if(spi&&document.activeElement!==spi)spi.value=sharepointUrl;applyLogo();renderCal();renderDay();if(docsFor)renderDocs();
   },e=>console.error("config",e));
   db.collection("usuarios").onSnapshot(snap=>{
-    creds={};const vistos={};snap.docs.forEach(d=>{const x=d.data();if(x&&x.hash)creds[d.id]=x.hash;if(x&&x.vistoEn)vistos[d.id]=x.vistoEn});
+    creds={};usuarios={};const vistos={};snap.docs.forEach(d=>{const x=d.data()||{};usuarios[d.id]=x;if(x.hash&&x.activo!==false)creds[d.id]=x.hash;if(x.vistoEn)vistos[d.id]=x.vistoEn});
     window.__vistos=vistos;
     restoreSession();renderAll();if(perfil)closeLogin();
   },e=>console.error("usuarios",e));
