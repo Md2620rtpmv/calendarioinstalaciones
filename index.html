@@ -284,7 +284,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <span style="font-weight:700">Familia:</span>
         <span><i class="sw fam-tl"></i>TL</span>
         <span><i class="sw fam-mamparas"></i>Mamparas</span>
-        <span><i class="sw fam-muura"></i>Muura</span>
       </div>
     </section>
 
@@ -294,7 +293,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="card" id="pendCard" hidden><h3>Por autorizar <small id="pendCount"></small></h3><div id="pendBody" class="empty">Sin solicitudes pendientes.</div></div>
       <div class="card" id="listCard" hidden><h3>Instalaciones reservadas <small id="listCount"></small></h3><p class="sub">Apartadas y autorizadas con fecha por venir. Adjunta aquí la documentación del proyecto y las fotos de obra.</p><div id="listBody" class="empty">Nada reservado todavía.</div></div>
       <div class="card" id="nextCard"><h3>Próximas instalaciones</h3><div id="nextBody" class="empty">Nada programado todavía.</div></div>
-      <div class="card" id="usersCard" hidden><h3>Usuarios</h3><p class="sub">Define o cambia la contraseña de cada usuario.</p><div id="usersBody" class="ulist"></div><div class="logo-set"><img id="logoPrev" alt="" hidden><label class="btn sm">Subir logo Modumex<input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp"></label><button class="btn sm" id="logoDel" type="button" hidden>Quitar logo</button><span style="color:var(--muted)">Se mostrará en el inicio de sesión.</span></div></div>
+      <div class="card" id="usersCard" hidden><h3>Usuarios</h3><p class="sub">Define o cambia la contraseña de cada usuario.</p><div id="usersBody" class="ulist"></div><div class="logo-set" style="display:block"><div style="font-weight:700;margin-bottom:6px">Repositorio de documentos (SharePoint)</div><div style="display:flex;gap:6px;flex-wrap:wrap"><input type="url" id="spUrl" placeholder="https://… enlace a la carpeta" style="flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"><button class="btn sm" id="spSave" type="button">Guardar</button></div><div style="color:var(--muted);margin-top:4px">Aparecerá como botón en la ventana de documentos.</div></div>
+      <div class="logo-set"><img id="logoPrev" alt="" hidden><label class="btn sm">Subir logo Modumex<input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp"></label><button class="btn sm" id="logoDel" type="button" hidden>Quitar logo</button><span style="color:var(--muted)">Se mostrará en el inicio de sesión.</span></div></div>
     </aside>
   </div>
 </div>
@@ -304,7 +304,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <p class="sub">Todos los campos son obligatorios. Al guardar, la fecha queda apartada en amarillo hasta que oceja o Admin la autoricen; si nadie lo hace en 48 horas, se libera sola.</p>
   <div class="field"><label for="fSol">Nombre del solicitante <i>*</i></label><input id="fSol" maxlength="80" autocomplete="off" required></div>
   <div class="field"><label for="fPro">Nombre del proyecto <i>*</i></label><input id="fPro" maxlength="120" autocomplete="off" required></div>
-  <div class="field"><label>Familia <i>*</i></label><div class="seg" id="fFam"><button type="button" data-v="TL">TL</button><button type="button" data-v="Mamparas">Mamparas</button><button type="button" data-v="Muura">Muura</button></div></div>
+  <div class="field"><label>Familia <i>*</i></label><div class="seg" id="fFam" style="grid-template-columns:1fr 1fr"><button type="button" data-v="TL">TL</button><button type="button" data-v="Mamparas">Mamparas</button></div></div>
   <div class="row2">
     <div class="field"><label for="fIni">Desde <i>*</i></label><input id="fIni" type="date" required></div>
     <div class="field"><label for="fFin">Hasta <i>*</i></label><input id="fFin" type="date" required></div>
@@ -330,6 +330,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 <dialog id="docsDlg"><div class="dlg">
   <h2 id="dTitle">Documentos y evidencias</h2>
   <p class="sub" id="dSub"></p>
+  <button class="btn sm" id="dSharePoint" type="button" style="margin-bottom:10px" hidden>Abrir repositorio SharePoint ↗</button>
   <div id="dRows"></div>
   <div class="err" id="dErr"></div>
   <div class="actions"><button class="btn" id="dClose" type="button">Cerrar</button></div>
@@ -368,7 +369,8 @@ let selected=todayStr();
 let famSel=null;
 let docsFor=null;
 let logoData=null;
-let liberados=[];         // fechas de fin de semana liberadas por Admin (YYYY-MM-DD)
+let liberados=[];
+let sharepointUrl="";         // fechas de fin de semana liberadas por Admin (YYYY-MM-DD)
 let vistoEn=null;         // última vez que el perfil marcó alertas como leídas (ISO)
 let alertKeysKnown=null;  // para avisar con toast cuando llega algo nuevo         // id de solicitud abierta en el diálogo de documentos
 
@@ -564,6 +566,8 @@ $("#logoFile").addEventListener("change",async e=>{
   catch(err){toast("No se pudo guardar el logo")}
   e.target.value="";
 });
+$("#spSave").onclick=async()=>{const u=$("#spUrl").value.trim();if(u&&!/^https?:\/\//i.test(u)){toast("El enlace debe empezar con https://");return}
+  try{if(u)await db.doc("config/sharepoint").set({url:u,por:perfil,en:new Date().toISOString()});else await db.doc("config/sharepoint").delete();toast(u?"Repositorio guardado":"Repositorio quitado")}catch(e){toast("No se pudo guardar")}};
 $("#logoDel").onclick=async()=>{try{await db.doc("config/logo").delete();toast("Logo quitado")}catch(e){toast("No se pudo quitar")}};
 $("#tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(!b)return;$("#layout").dataset.tab=b.dataset.tab;[...$("#tabs").children].forEach(x=>x.classList.toggle("on",x===b))});
 // ----- alertas dentro de la app -----
@@ -664,7 +668,7 @@ $("#fSave").onclick=async()=>{
   const sol=$("#fSol").value.trim(),pro=$("#fPro").value.trim(),ini=$("#fIni").value,fin=$("#fFin").value,err=$("#fErr");
   if(!sol)return err.textContent="El nombre del solicitante es obligatorio.";
   if(!pro)return err.textContent="El nombre del proyecto es obligatorio.";
-  if(!famSel)return err.textContent="Elige una familia: TL, Mamparas o Muura.";
+  if(!famSel)return err.textContent="Elige una familia: TL o Mamparas.";
   if(!ini)return err.textContent="La fecha de inicio es obligatoria.";
   if(!fin)return err.textContent="La fecha de fin es obligatoria.";
   if(fin<ini)return err.textContent="La fecha final no puede ser antes de la inicial.";
@@ -689,7 +693,8 @@ $("#dClose").onclick=()=>{docsFor=null;ddlg.close()};
 function renderDocs(){
   const r=reqs.find(x=>x.id===docsFor);if(!r){ddlg.close();return}
   $("#dTitle").textContent="Documentos y evidencias · "+r.proyecto;
-  $("#dSub").textContent=r.familia+" · "+r.solicitante+" · "+fmtRange(r.inicio,r.fin)+(assets?"":" · Sube archivos o pega enlaces (Drive, SharePoint, etc.)");
+  $("#dSub").textContent=r.familia+" · "+r.solicitante+" · "+fmtRange(r.inicio,r.fin)+" · Sube el archivo a SharePoint y pega aquí su enlace.";
+  const sp=$("#dSharePoint");if(sp){sp.hidden=!sharepointUrl;sp.onclick=()=>window.open(sharepointUrl,"_blank","noopener")}
   $("#dErr").textContent="";
   const rows=$("#dRows");rows.innerHTML="";
   const d=r.docs||{};
@@ -700,7 +705,6 @@ function renderDocs(){
     if(x&&x.url)cur='<div class="cur"><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.nombre||x.url)+'</a><button class="btn sm" data-d="quitar" data-k="'+k+'">Quitar</button></div>';
     else cur='<div class="cur" style="color:var(--muted)">Sin documento</div>';
     let add='<div class="add">';
-    if(assets)add+='<label class="btn sm">Subir archivo<input type="file" data-d="file" data-k="'+k+'"></label>';
     add+='<input type="url" placeholder="https://… enlace al documento" data-k="'+k+'"><button class="btn sm" data-d="link" data-k="'+k+'">Guardar enlace</button></div>';
     row.innerHTML='<div class="k">'+k+'</div><div class="v">'+cur+add+'</div>';
     rows.appendChild(row);
@@ -818,7 +822,8 @@ renderCal();renderDay();
   if(user){try{uid=await user.id();isOwner=await user.isOwner();canWrite=await user.can("data.write")}catch(e){}}
   restoreSession();renderWho();if(perfil)closeLogin();
   db.collection("config").onSnapshot(snap=>{
-    logoData=null;liberados=[];snap.docs.forEach(d=>{const x=d.data()||{};if(d.id==="logo"&&x.data)logoData=x.data;if(d.id==="finesLiberados"&&Array.isArray(x.fechas))liberados=x.fechas});applyLogo();renderCal();renderDay();
+    logoData=null;liberados=[];sharepointUrl="";snap.docs.forEach(d=>{const x=d.data()||{};if(d.id==="logo"&&x.data)logoData=x.data;if(d.id==="finesLiberados"&&Array.isArray(x.fechas))liberados=x.fechas;if(d.id==="sharepoint"&&x.url)sharepointUrl=x.url});
+    const spi=$("#spUrl");if(spi&&document.activeElement!==spi)spi.value=sharepointUrl;applyLogo();renderCal();renderDay();if(docsFor)renderDocs();
   },e=>console.error("config",e));
   db.collection("usuarios").onSnapshot(snap=>{
     creds={};const vistos={};snap.docs.forEach(d=>{const x=d.data();if(x&&x.hash)creds[d.id]=x.hash;if(x&&x.vistoEn)vistos[d.id]=x.vistoEn});
