@@ -250,6 +250,25 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .al .tx{font-size:14px}.al .tx b{font-weight:700}.al .tm{color:var(--muted);font-size:12px;margin-top:2px}
 .al.nuevo .tx::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--rojo);margin-right:6px;vertical-align:middle}
 @media (max-width:900px){.bell{width:46px;height:46px;flex:none}}
+
+.cap{display:flex;flex-direction:column;gap:5px;margin:0 0 10px;font-size:13px}
+.cap .row{display:flex;align-items:center;gap:8px}
+.cap .row b{min-width:76px}
+.cap .bar{flex:1;height:8px;border-radius:999px;background:var(--soft);overflow:hidden}
+.cap .bar i{display:block;height:100%;border-radius:999px}
+.cap .n{color:var(--muted);min-width:70px;text-align:right}
+.cap .full .n{color:var(--rojo);font-weight:700}
+.pz{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--soft);color:var(--ink);margin-left:6px}
+.bit{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow:auto;margin-bottom:10px}
+.bit .e{border-left:3px solid var(--line);padding:4px 10px}
+.bit .e .h{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.bit .e .h b{color:var(--ink)}
+.bit .e .t{font-size:14px;margin-top:2px;white-space:pre-wrap}
+.bit .e.st-programado{border-color:var(--amarillo)}.bit .e.st-en_proceso{border-color:var(--azul)}.bit .e.st-pausado{border-color:var(--muted)}.bit .e.st-terminado{border-color:var(--verde)}.bit .e.st-incidencia{border-color:var(--rojo)}
+.bit-form{border-top:1px solid var(--line);padding-top:12px}
+.bit-form textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--bg);font:inherit;color:inherit;min-height:70px;resize:vertical}
+.bst{font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;color:#fff;margin-left:6px}
+.bst.programado{background:var(--amarillo);color:#2A2200}.bst.en_proceso{background:var(--azul)}.bst.pausado{background:var(--muted)}.bst.terminado{background:var(--verde)}.bst.incidencia{background:var(--rojo)}
 </style>
 </head>
 <body>
@@ -298,7 +317,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="card" id="listCard" hidden><h3>Instalaciones reservadas <small id="listCount"></small></h3><p class="sub">Apartadas y autorizadas con fecha por venir. Adjunta aquí la documentación del proyecto y las fotos de obra.</p><div id="listBody" class="empty">Nada reservado todavía.</div></div>
       <div class="card" id="nextCard"><h3>Próximas instalaciones</h3><div id="nextBody" class="empty">Nada programado todavía.</div></div>
       <div class="card" id="usersCard" hidden><h3>Usuarios <small id="usersCount"></small></h3><p class="sub">Crea, modifica o desactiva usuarios y define su rol.</p><div id="usersBody" class="ulist"></div><div style="margin-top:12px"><button class="btn sm primary" id="userNew" type="button">+ Nuevo usuario</button></div></div>
-      <div class="card" id="configCard" hidden><h3>Configuración</h3><div class="logo-set" style="display:block;margin-top:0;padding-top:0;border-top:0"><div style="font-weight:700;margin-bottom:6px">Repositorio de documentos (SharePoint)</div><div style="display:flex;gap:6px;flex-wrap:wrap"><input type="url" id="spUrl" placeholder="https://… enlace a la carpeta" style="flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"><button class="btn sm" id="spSave" type="button">Guardar</button></div><div style="color:var(--muted);margin-top:4px">Aparecerá como botón en la ventana de documentos.</div></div>
+      <div class="card" id="configCard" hidden><h3>Configuración</h3><div class="logo-set" style="display:block;margin-top:0;padding-top:0;border-top:0"><div style="font-weight:700;margin-bottom:6px">Límite de piezas por día</div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><label>Mamparas <input type="number" id="capMamparas" min="1" style="width:80px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"></label><label>TL <input type="number" id="capTL" min="1" style="width:80px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"></label><button class="btn sm" id="capSave" type="button">Guardar</button></div></div>
+      <div class="logo-set" style="display:block;margin-top:0;padding-top:0;border-top:0"><div style="font-weight:700;margin-bottom:6px">Repositorio de documentos (SharePoint)</div><div style="display:flex;gap:6px;flex-wrap:wrap"><input type="url" id="spUrl" placeholder="https://… enlace a la carpeta" style="flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"><button class="btn sm" id="spSave" type="button">Guardar</button></div><div style="color:var(--muted);margin-top:4px">Aparecerá como botón en la ventana de documentos.</div></div>
       <div class="logo-set"><img id="logoPrev" alt="" hidden><label class="btn sm">Subir logo Modumex<input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp"></label><button class="btn sm" id="logoDel" type="button" hidden>Quitar logo</button><span style="color:var(--muted)">Se mostrará en el inicio de sesión.</span></div></div>
     </aside>
   </div>
@@ -314,6 +334,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <div class="field"><label for="fIni">Desde <i>*</i></label><input id="fIni" type="date" required></div>
     <div class="field"><label for="fFin">Hasta <i>*</i></label><input id="fFin" type="date" required></div>
   </div>
+  <div class="field"><label for="fPz">Piezas del EXP <i>*</i></label><input id="fPz" type="number" min="1" step="1" inputmode="numeric" placeholder="Cantidad de piezas a instalar"><div id="fCap" class="cap"></div></div>
   <div class="err" id="fErr"></div>
   <div class="actions"><button class="btn" id="fCancel" type="button">Cancelar</button><button class="btn primary" id="fSave" type="button">Apartar fecha</button></div>
 </div></dialog>
@@ -332,6 +353,21 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </div>
 </div>
 
+<dialog id="bitDlg"><div class="dlg">
+  <h2 id="bTitle">Bitácora</h2>
+  <p class="sub" id="bSub"></p>
+  <div id="bList" class="bit"></div>
+  <div class="bit-form" id="bForm">
+    <div class="field"><label for="bEstado">Estatus</label><select id="bEstado"><option value="programado">Programado</option><option value="en_proceso">En proceso</option><option value="pausado">Pausado</option><option value="terminado">Terminado</option><option value="incidencia">Incidencia</option></select></div>
+    <div class="row2">
+      <div class="field"><label for="bInst">Instalador</label><input id="bInst" maxlength="60" placeholder="Nombre del instalador"></div>
+      <div class="field"><label for="bPz">Piezas instaladas hoy</label><input id="bPz" type="number" min="0" step="1" inputmode="numeric"></div>
+    </div>
+    <div class="field"><label for="bNota">Reporte</label><textarea id="bNota" maxlength="1000" placeholder="Avance, pendientes, incidencias…"></textarea></div>
+    <div class="err" id="bErr"></div>
+  </div>
+  <div class="actions"><button class="btn" id="bClose" type="button">Cerrar</button><button class="btn primary" id="bSave" type="button">Registrar en bitácora</button></div>
+</div></dialog>
 <dialog id="docsDlg"><div class="dlg">
   <h2 id="dTitle">Documentos y evidencias</h2>
   <p class="sub" id="dSub"></p>
@@ -391,7 +427,10 @@ let famSel=null;
 let docsFor=null;
 let logoData=null;
 let liberados=[];
-let sharepointUrl="";         // fechas de fin de semana liberadas por Admin (YYYY-MM-DD)
+let sharepointUrl="";
+let limites={Mamparas:50,TL:45};
+let bitFor=null;
+const BIT_ESTADOS={programado:"Programado",en_proceso:"En proceso",pausado:"Pausado",terminado:"Terminado",incidencia:"Incidencia"};         // fechas de fin de semana liberadas por Admin (YYYY-MM-DD)
 let vistoEn=null;         // última vez que el perfil marcó alertas como leídas (ISO)
 let alertKeysKnown=null;  // para avisar con toast cuando llega algo nuevo         // id de solicitud abierta en el diálogo de documentos
 
@@ -417,7 +456,8 @@ const can={
   team:()=>["admin","autoriza","edita"].includes(rolDe(perfil)),
   docs:r=>["admin","autoriza","edita"].includes(rolDe(perfil))||can.mine(r),
   mine:r=>(!!perfil&&r.creadoPorPerfil===perfil)||(!!uid&&r.creadoPor===uid),
-  manage:()=>rolDe(perfil)==="admin"
+  manage:()=>rolDe(perfil)==="admin",
+  bitacora:()=>["admin","autoriza","edita"].includes(rolDe(perfil))
 };
 
 // ----- estado efectivo (48h) -----
@@ -433,6 +473,12 @@ async function toggleLiberado(s){
   try{await db.doc("config/finesLiberados").set({fechas:next,por:perfil,en:new Date().toISOString()});toast(liberados.includes(s)?"Día bloqueado de nuevo":"Día liberado para programar")}catch(e){toast("No se pudo guardar")}
 }
 function famClass(f){return "fam-"+String(f||"").toLowerCase().replace(/[^a-z]/g,"")}
+function piezasDia(r){const n=Math.max(1,diasEntre(r.inicio,r.fin).length);return (Number(r.piezas)||0)/n}
+function cargaDia(fam,dia,excluir){let t=0;reqs.forEach(r=>{if(r.id!==excluir&&isActive(r)&&r.familia===fam&&covers(r,dia))t+=piezasDia(r)});return t}
+function limiteDe(fam){return Number(limites[fam])||0}
+function capHtml(fam,dia,extra){const lim=limiteDe(fam),usado=cargaDia(fam,dia),tot=usado+(extra||0);const pct=lim?Math.min(100,Math.round(tot/lim*100)):0;const full=lim&&tot>lim;
+  return '<div class="row'+(full?" full":"")+'"><b>'+esc(fam)+'</b><div class="bar"><i style="width:'+pct+'%;background:'+(full?"var(--rojo)":"var(--"+fam.toLowerCase()+")")+'"></i></div><span class="n">'+Math.round(tot)+' / '+lim+'</span></div>'}
+function ultimaBit(r){const b=r.bitacora||[];return b.length?b[b.length-1]:null}
 function docsComplete(r){return DOCS_REQ.every(k=>r.docs&&r.docs[k]&&r.docs[k].url)}
 function isActive(r){const s=efState(r);return s==="apartado"||s==="preautorizado"||s==="autorizado"}
 function covers(r,day){return r.inicio<=day&&day<=r.fin}
@@ -498,7 +544,8 @@ function reqHtml(r,opts){
   opts=opts||{};
   const s=efState(r);
   let h='<div class="req"><div class="t"><span>'+esc(r.proyecto)+'</span>'+stateTag(r)+'</div>';
-  h+='<div class="m"><span class="fam '+famClass(r.familia)+'">'+esc(r.familia)+'</span>'+esc(r.solicitante)+' · '+fmtRange(r.inicio,r.fin)+'</div>';
+  const ub=ultimaBit(r);
+  h+='<div class="m"><span class="fam '+famClass(r.familia)+'">'+esc(r.familia)+'</span>'+esc(r.solicitante)+' · '+fmtRange(r.inicio,r.fin)+(r.piezas?'<span class="pz">'+esc(r.piezas)+' pzas</span>':"")+(ub?'<span class="bst '+ub.estado+'">'+esc(BIT_ESTADOS[ub.estado]||ub.estado)+'</span>':"")+'</div>';
   if(s==="preautorizado"&&!docsComplete(r))h+='<div class="m">Fecha apartada en firme · faltan '+DOCS_REQ.filter(k=>!(r.docs&&r.docs[k]&&r.docs[k].url)).join(", ")+'</div>';
   if(s==="apartado"){const left=Math.max(0,r.creadoEn?Date.parse(r.creadoEn)+H48-Date.now():0);h+='<div class="m">Se libera en '+Math.floor(left/3600000)+' h '+Math.floor(left%3600000/60000)+' min si no se autoriza</div>'}
   if(can.docs(r)&&isActive(r))h+=docsHtml(r);
@@ -507,6 +554,7 @@ function reqHtml(r,opts){
     if(s==="apartado")btns.push('<button class="btn sm pre" data-a="preautorizar" data-id="'+r.id+'">Preautorizar</button>');
     btns.push('<button class="btn sm ok" data-a="autorizar" data-id="'+r.id+'">Autorizar</button>');btns.push('<button class="btn sm no" data-a="rechazar" data-id="'+r.id+'">Rechazar</button>')}
   if(isActive(r)&&can.docs(r))btns.push('<button class="btn sm" data-a="docs" data-id="'+r.id+'">Documentos</button>');
+  if(isActive(r)||(r.bitacora&&r.bitacora.length))btns.push('<button class="btn sm" data-a="bitacora" data-id="'+r.id+'">Bitácora'+(r.bitacora&&r.bitacora.length?' ('+r.bitacora.length+')':"")+'</button>');
   if(isActive(r)&&can.cancel())btns.push('<button class="btn sm" data-a="cancelar" data-id="'+r.id+'">Cancelar</button>');
   if(can.manage()&&!opts.noDelete)btns.push('<button class="btn sm" data-a="borrar" data-id="'+r.id+'">Borrar</button>');
   if(btns.length)h+='<div class="b">'+btns.join("")+'</div>';
@@ -526,7 +574,7 @@ function renderDay(){
   }
   else{
     const porFam={};list.forEach(r=>{porFam[r.familia]=(porFam[r.familia]||0)+1});
-    let res='<div class="resumen"><span class="tot">'+list.length+(list.length===1?" instalación":" instalaciones")+'</span>'+Object.keys(porFam).map(f=>'<span class="'+famClass(f)+'">'+esc(f)+(porFam[f]>1?" × "+porFam[f]:"")+'</span>').join("")+'</div>';
+    let res='<div class="cap">'+["Mamparas","TL"].map(f=>capHtml(f,selected)).join("")+'</div><div class="resumen"><span class="tot">'+list.length+(list.length===1?" instalación":" instalaciones")+'</span>'+Object.keys(porFam).map(f=>'<span class="'+famClass(f)+'">'+esc(f)+(porFam[f]>1?" × "+porFam[f]:"")+'</span>').join("")+'</div>';
     const libre=can.create()&&!esFinCerrado(selected)&&selected>=todayStr()?'<div class="m" style="margin-top:10px"><button class="btn sm" id="dayNew">Apartar este día para otra familia</button></div>':"";
     body.className="";body.innerHTML=res+list.sort((a,b)=>a.familia<b.familia?-1:1).map(r=>reqHtml(r)).join("")+libre;
   }
@@ -628,6 +676,8 @@ $("#logoFile").addEventListener("change",async e=>{
   catch(err){toast("No se pudo guardar el logo")}
   e.target.value="";
 });
+$("#capSave").onclick=async()=>{const m=Number($("#capMamparas").value),t=Number($("#capTL").value);if(!(m>0&&t>0)){toast("Indica límites mayores a cero");return}
+  try{await db.doc("config/limites").set({valores:{Mamparas:m,TL:t},por:perfil,en:new Date().toISOString()});toast("Límites guardados")}catch(e){toast("No se pudo guardar")}};
 $("#spSave").onclick=async()=>{const u=$("#spUrl").value.trim();if(u&&!/^https?:\/\//i.test(u)){toast("El enlace debe empezar con https://");return}
   try{if(u)await db.doc("config/sharepoint").set({url:u,por:perfil,en:new Date().toISOString()});else await db.doc("config/sharepoint").delete();toast(u?"Repositorio guardado":"Repositorio quitado")}catch(e){toast("No se pudo guardar")}};
 $("#logoDel").onclick=async()=>{try{await db.doc("config/logo").delete();toast("Logo quitado")}catch(e){toast("No se pudo quitar")}};
@@ -699,16 +749,17 @@ document.addEventListener("click",async e=>{
   const b=e.target.closest("button[data-a]");if(!b)return;
   const r=reqs.find(x=>x.id===b.dataset.id);if(!r||!db)return;
   if(b.dataset.a==="docs"){openDocs(r);return}
+  if(b.dataset.a==="bitacora"){openBit(r);return}
   const ref=db.doc("solicitudes/"+r.id);const now=new Date().toISOString();
   b.disabled=true;
   try{
     if(b.dataset.a==="autorizar"){
-      const clash=reqs.find(o=>o.id!==r.id&&o.familia===r.familia&&efState(o)==="autorizado"&&overlaps(o.inicio,o.fin,r.inicio,r.fin));
-      if(clash&&!await ask("Ya hay una instalación de "+r.familia+" autorizada en esas fechas ("+clash.proyecto+"). ¿Autorizar de todos modos?")){b.disabled=false;return}
+      const exc=diasEntre(r.inicio,r.fin).filter(d=>cargaDia(r.familia,d)>limiteDe(r.familia));
+      if(exc.length&&!await ask("Con esta instalación se supera el límite diario de "+r.familia+" el "+exc.map(fmt).join(", ")+". ¿Autorizar de todos modos?")){b.disabled=false;return}
       await ref.update({estado:"autorizado",autorizadoPor:perfil,autorizadoEn:now});toast("Autorizada")}
     else if(b.dataset.a==="preautorizar"){
-      const clash=reqs.find(o=>o.id!==r.id&&o.familia===r.familia&&["preautorizado","autorizado"].includes(efState(o))&&overlaps(o.inicio,o.fin,r.inicio,r.fin));
-      if(clash&&!await ask("Ya hay una instalación de "+r.familia+" apartada en firme en esas fechas ("+clash.proyecto+"). ¿Preautorizar de todos modos?")){b.disabled=false;return}
+      const exc=diasEntre(r.inicio,r.fin).filter(d=>cargaDia(r.familia,d)>limiteDe(r.familia));
+      if(exc.length&&!await ask("Con esta instalación se supera el límite diario de "+r.familia+" el "+exc.map(fmt).join(", ")+". ¿Preautorizar de todos modos?")){b.disabled=false;return}
       await ref.update({estado:"preautorizado",preautorizadoPor:perfil,preautorizadoEn:now});toast("Preautorizada: fecha apartada, pendiente de documentos")}
     else if(b.dataset.a==="rechazar"){await ref.update({estado:"rechazado",autorizadoPor:perfil,autorizadoEn:now});toast("Rechazada")}
     else if(b.dataset.a==="cancelar"){if(!await ask("¿Cancelar la instalación de "+r.proyecto+"?")){b.disabled=false;return}await ref.update({estado:"cancelado",canceladoPor:perfil,canceladoEn:now});toast("Cancelada")}
@@ -720,13 +771,18 @@ document.addEventListener("click",async e=>{
 const dlg=$("#formDlg");
 function openForm(day){
   famSel=null;[...$("#fFam").children].forEach(x=>x.classList.remove("on"));
-  $("#fSol").value="";$("#fPro").value="";$("#fErr").textContent="";
+  $("#fSol").value="";$("#fPro").value="";$("#fPz").value="";$("#fCap").innerHTML="";$("#fErr").textContent="";
   const d=day||(selected>=todayStr()?selected:todayStr());
   $("#fIni").value=d;$("#fFin").value=d;$("#fIni").min=todayStr();$("#fFin").min=todayStr();
   dlg.showModal();$("#fSol").focus();
 }
-$("#fFam").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;famSel=b.dataset.v;[...$("#fFam").children].forEach(x=>x.classList.toggle("on",x===b))});
-$("#fIni").addEventListener("change",()=>{if($("#fFin").value<$("#fIni").value)$("#fFin").value=$("#fIni").value;$("#fFin").min=$("#fIni").value});
+$("#fFam").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;famSel=b.dataset.v;[...$("#fFam").children].forEach(x=>x.classList.toggle("on",x===b));previewCap()});
+$("#fIni").addEventListener("change",()=>{if($("#fFin").value<$("#fIni").value)$("#fFin").value=$("#fIni").value;$("#fFin").min=$("#fIni").value;previewCap()});
+$("#fFin").addEventListener("change",previewCap);$("#fPz").addEventListener("input",previewCap);
+function previewCap(){const fam=famSel,ini=$("#fIni").value,fin=$("#fFin").value,pz=Number($("#fPz").value)||0;const box=$("#fCap");
+  if(!fam||!ini||!fin||fin<ini){box.innerHTML="";return}
+  const dias=diasEntre(ini,fin),porDia=pz/dias.length;
+  box.innerHTML=dias.slice(0,7).map(d=>'<div style="font-size:12px;color:var(--muted)">'+fmt(d)+'</div>'+capHtml(fam,d,porDia)).join("")+(dias.length>7?'<div style="font-size:12px;color:var(--muted)">… y '+(dias.length-7)+' días más</div>':"");}
 $("#fCancel").onclick=()=>dlg.close();
 $("#fSave").onclick=async()=>{
   const sol=$("#fSol").value.trim(),pro=$("#fPro").value.trim(),ini=$("#fIni").value,fin=$("#fFin").value,err=$("#fErr");
@@ -739,12 +795,16 @@ $("#fSave").onclick=async()=>{
   if(ini<todayStr())return err.textContent="No se pueden apartar fechas pasadas.";
   const cerrados=diasEntre(ini,fin).filter(esFinCerrado);
   if(cerrados.length)return err.textContent="No se puede programar en sábado o domingo ("+cerrados.map(fmt).join(", ")+") a menos que Admin libere ese día desde el calendario.";
-  const clash=reqs.find(r=>isActive(r)&&r.familia===famSel&&overlaps(r.inicio,r.fin,ini,fin));
-  if(clash)return err.textContent="Ya hay una instalación de "+famSel+" en esas fechas: "+clash.proyecto+" ("+fmtRange(clash.inicio,clash.fin)+"). Elige otras fechas u otra familia.";
+  const pz=Number($("#fPz").value);
+  if(!pz||pz<1||pz%1)return err.textContent="Indica cuántas piezas tiene el EXP (número entero mayor a cero).";
+  const dias=diasEntre(ini,fin),porDia=pz/dias.length,lim=limiteDe(famSel);
+  const llenos=dias.filter(d=>cargaDia(famSel,d)+porDia>lim);
+  if(lim&&llenos.length){const d=llenos[0];const libre=Math.max(0,Math.floor(lim-cargaDia(famSel,d)));
+    return err.textContent="Se llegó al límite diario de "+famSel+" ("+lim+" piezas) el "+llenos.map(fmt).join(", ")+". Ese día quedan "+libre+" piezas disponibles de "+famSel+". Reduce las piezas, amplía el rango de fechas o elige otro día.";}
   if(!db)return err.textContent="Sin conexión a la base de datos.";
   $("#fSave").disabled=true;
   try{
-    await db.collection("solicitudes").add({solicitante:sol,proyecto:pro,familia:famSel,inicio:ini,fin:fin,estado:"apartado",creadoPor:uid,creadoPorPerfil:perfil,creadoEn:new Date().toISOString(),docs:{}});
+    await db.collection("solicitudes").add({solicitante:sol,proyecto:pro,familia:famSel,inicio:ini,fin:fin,piezas:pz,estado:"apartado",creadoPor:uid,creadoPorPerfil:perfil,creadoEn:new Date().toISOString(),docs:{},bitacora:[]});
     dlg.close();toast("Fecha apartada. Pendiente de autorización.");selected=ini;
   }catch(e){err.textContent="No se pudo guardar ("+(e&&e.code||"error")+"). Tu acceso a este artefacto debe ser de Contribuidor para enviar solicitudes."}
   $("#fSave").disabled=false;
@@ -754,6 +814,30 @@ $("#fSave").onclick=async()=>{
 const ddlg=$("#docsDlg");
 function openDocs(r){docsFor=r.id;renderDocs();ddlg.showModal()}
 $("#dClose").onclick=()=>{docsFor=null;ddlg.close()};
+const bdlg=$("#bitDlg");
+function openBit(r){bitFor=r.id;$("#bNota").value="";$("#bPz").value="";$("#bErr").textContent="";const ub=ultimaBit(r);$("#bEstado").value=ub?ub.estado:"programado";$("#bInst").value=ub?(ub.instalador||""):"";renderBit();bdlg.showModal()}
+$("#bClose").onclick=()=>{bitFor=null;bdlg.close()};
+function renderBit(){
+  const r=reqs.find(x=>x.id===bitFor);if(!r){bdlg.close();return}
+  $("#bTitle").textContent="Bitácora · "+r.proyecto;
+  $("#bSub").textContent=r.familia+" · "+r.solicitante+" · "+fmtRange(r.inicio,r.fin)+(r.piezas?" · "+r.piezas+" piezas":"");
+  const list=(r.bitacora||[]).slice().reverse();const box=$("#bList");
+  const inst=(r.bitacora||[]).reduce((t,e)=>t+(Number(e.piezas)||0),0);
+  box.innerHTML=(r.piezas?'<div style="font-size:13px;color:var(--muted)">Instaladas según bitácora: <b style="color:var(--ink)">'+inst+' / '+r.piezas+'</b></div>':"")+(list.length?list.map(e=>'<div class="e st-'+esc(e.estado)+'"><div class="h"><b>'+esc(BIT_ESTADOS[e.estado]||e.estado)+'</b><span>'+esc(new Date(e.en).toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"}))+'</span><span>'+esc(e.instalador||"")+'</span><span>por '+esc(nombreDe(e.por))+'</span>'+(e.piezas?'<span>'+esc(e.piezas)+' pzas</span>':"")+'</div>'+(e.nota?'<div class="t">'+esc(e.nota)+'</div>':"")+'</div>').join(""):'<div class="empty">Sin registros todavía.</div>');
+  const puede=can.bitacora();$("#bForm").hidden=!puede;$("#bSave").hidden=!puede;
+}
+$("#bSave").onclick=async()=>{
+  const r=reqs.find(x=>x.id===bitFor);if(!r||!can.bitacora())return;
+  const err=$("#bErr");const estado=$("#bEstado").value,inst=$("#bInst").value.trim(),nota=$("#bNota").value.trim(),pz=$("#bPz").value===""?null:Number($("#bPz").value);
+  if(!inst)return err.textContent="Escribe el nombre del instalador.";
+  if(!nota&&pz===null)return err.textContent="Escribe el reporte o las piezas instaladas.";
+  if(pz!==null&&(pz<0||pz%1))return err.textContent="Las piezas deben ser un número entero.";
+  const e={estado:estado,instalador:inst,nota:nota,piezas:pz,por:perfil,en:new Date().toISOString()};
+  $("#bSave").disabled=true;
+  try{await db.doc("solicitudes/"+r.id).update({bitacora:(r.bitacora||[]).concat([e]),bitacoraEstado:estado});$("#bNota").value="";$("#bPz").value="";toast("Registrado en bitácora")}
+  catch(ex){err.textContent="No se pudo guardar ("+(ex&&ex.code||"error")+")."}
+  $("#bSave").disabled=false;
+};
 function renderDocs(){
   const r=reqs.find(x=>x.id===docsFor);if(!r){ddlg.close();return}
   $("#dTitle").textContent="Documentos y evidencias · "+r.proyecto;
@@ -886,7 +970,8 @@ renderCal();renderDay();
   if(user){try{uid=await user.id();isOwner=await user.isOwner();canWrite=await user.can("data.write")}catch(e){}}
   restoreSession();renderWho();if(perfil)closeLogin();
   db.collection("config").onSnapshot(snap=>{
-    logoData=null;liberados=[];sharepointUrl="";snap.docs.forEach(d=>{const x=d.data()||{};if(d.id==="logo"&&x.data)logoData=x.data;if(d.id==="finesLiberados"&&Array.isArray(x.fechas))liberados=x.fechas;if(d.id==="sharepoint"&&x.url)sharepointUrl=x.url});
+    logoData=null;liberados=[];sharepointUrl="";snap.docs.forEach(d=>{const x=d.data()||{};if(d.id==="logo"&&x.data)logoData=x.data;if(d.id==="finesLiberados"&&Array.isArray(x.fechas))liberados=x.fechas;if(d.id==="sharepoint"&&x.url)sharepointUrl=x.url;if(d.id==="limites"){limites=Object.assign({Mamparas:50,TL:45},x.valores||{})}});
+    ["Mamparas","TL"].forEach(f=>{const i=$("#cap"+f);if(i&&document.activeElement!==i)i.value=limites[f]});
     const spi=$("#spUrl");if(spi&&document.activeElement!==spi)spi.value=sharepointUrl;applyLogo();renderCal();renderDay();if(docsFor)renderDocs();
   },e=>console.error("config",e));
   db.collection("usuarios").onSnapshot(snap=>{
@@ -896,7 +981,7 @@ renderCal();renderDay();
   },e=>console.error("usuarios",e));
   db.collection("solicitudes").onSnapshot(snap=>{
     reqs=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
-    renderAll();if(docsFor)renderDocs();sweepExpired();
+    renderAll();if(docsFor)renderDocs();if(bitFor)renderBit();sweepExpired();
   },e=>{console.error("solicitudes",e);toast("Error al cargar solicitudes")});
   setInterval(()=>{renderBell();renderCal();renderMine();renderPend();renderList();renderDay();sweepExpired()},60000);
 })();
