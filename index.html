@@ -300,6 +300,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .pc .av{width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
 .pc select{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:3px 6px;background:var(--bg)}
 .col .empty{font-size:13px;text-align:center;padding:14px 0}
+.tras{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.tras input{width:52px;border:1px solid var(--line);border-radius:6px;padding:3px 6px;background:var(--bg);font-size:12px}
+.day.traslado{background:repeating-linear-gradient(135deg,var(--soft) 0 6px,var(--panel) 6px 12px)}
+.sw.traslado{background:repeating-linear-gradient(135deg,var(--muted) 0 3px,var(--line) 3px 6px)}
 .rej{background:var(--rojo-tint);border-left:3px solid var(--rojo);border-radius:6px;padding:6px 10px;font-size:13px;margin-top:6px}
 .rej b{display:block;font-size:12px;color:var(--rojo)}
 @media (max-width:900px){
@@ -347,6 +351,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <span><i class="sw rosa"></i>Preautorizado (fecha apartada, faltan docs)</span>
         <span><i class="sw azul"></i>Documentación completa</span>
         <span><i class="sw cerrado"></i>Fin de semana (solo si Admin lo libera)</span>
+        <span><i class="sw traslado"></i>Traslado</span>
       </div>
       <div class="legend" style="padding-top:0;border-top:0">
         <span style="font-weight:700">Familia:</span>
@@ -363,7 +368,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="card" id="listCard" hidden><h3>Instalaciones reservadas <small id="listCount"></small></h3><p class="sub">Apartadas y autorizadas con fecha por venir. Adjunta aquí la documentación del proyecto y las fotos de obra.</p><div id="listBody" class="empty">Nada reservado todavía.</div></div>
       <div class="card" id="nextCard"><h3>Próximas instalaciones</h3><div id="nextBody" class="empty">Nada programado todavía.</div></div>
       <div class="card" id="usersCard" hidden><h3>Usuarios <small id="usersCount"></small></h3><p class="sub">Crea, modifica o desactiva usuarios y define su rol.</p><div id="usersBody" class="ulist"></div><div style="margin-top:12px"><button class="btn sm primary" id="userNew" type="button">+ Nuevo usuario</button></div></div>
-      <div class="card" id="configCard" hidden><h3>Configuración</h3><div class="logo-set" style="display:block;margin-top:0;padding-top:0;border-top:0"><div style="font-weight:700;margin-bottom:6px">Tope de instalación por día</div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><label>SUPERIOR <input type="number" id="capSUPERIOR" min="1" style="width:70px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"> módulos</label><label>LEEDER <input type="number" id="capLEEDER" min="1" style="width:70px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"> módulos</label><label>TL <input type="number" id="capTL" min="1" style="width:70px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"> lockers</label><button class="btn sm" id="capSave" type="button">Guardar</button></div></div>
+      <div class="card" id="configCard" hidden><h3>Configuración</h3><div class="logo-set" style="display:block;margin-top:0;padding-top:0;border-top:0"><div style="font-weight:700;margin-bottom:2px">RAID · capacidad de instalación por día</div><div style="color:var(--muted);font-size:13px;margin-bottom:8px">Módulos o lockers que se pueden instalar por día y familia. Se usa para calcular fechas y bloquear días llenos.</div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><label>SUPERIOR <input type="number" id="capSUPERIOR" min="1" style="width:70px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"> módulos</label><label>LEEDER <input type="number" id="capLEEDER" min="1" style="width:70px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"> módulos</label><label>TL <input type="number" id="capTL" min="1" style="width:70px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"> lockers</label><button class="btn sm" id="capSave" type="button">Guardar</button></div></div>
       <div class="logo-set" style="display:block;margin-top:0;padding-top:0;border-top:0"><div style="font-weight:700;margin-bottom:6px">Repositorio de documentos (SharePoint)</div><div style="display:flex;gap:6px;flex-wrap:wrap"><input type="url" id="spUrl" placeholder="https://… enlace a la carpeta" style="flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--bg);font-size:13px"><button class="btn sm" id="spSave" type="button">Guardar</button></div><div style="color:var(--muted);margin-top:4px">Aparecerá como botón en la ventana de documentos.</div></div>
       <div class="logo-set"><img id="logoPrev" alt="" hidden><label class="btn sm">Subir logo Modumex<input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp"></label><button class="btn sm" id="logoDel" type="button" hidden>Quitar logo</button><span style="color:var(--muted)">Se mostrará en el inicio de sesión.</span></div></div>
     </aside>
@@ -536,6 +541,8 @@ async function toggleLiberado(s){
   try{await db.doc("config/finesLiberados").set({fechas:next,por:perfil,en:new Date().toISOString()});toast(liberados.includes(s)?"Día bloqueado de nuevo":"Día liberado para programar")}catch(e){toast("No se pudo guardar")}
 }
 function famClass(f){return "fam-"+String(f||"").toLowerCase().replace(/[^a-z]/g,"")}
+function diasTraslado(r){const n=Number(r.traslado)||0;if(!n)return [];const out=[];const d=new Date(r.inicio+"T12:00:00");let g=0;while(out.length<n&&g<60){d.setDate(d.getDate()-1);g++;const s=toStr(d);if(!esFinCerrado(s))out.unshift(s)}return out}
+function enTraslado(r,day){return diasTraslado(r).includes(day)}
 function piezasDia(r,dia){if(r.reparto&&typeof r.reparto==="object"){return Number(r.reparto[dia])||0}const ds=diasEntre(r.inicio,r.fin).filter(d=>!esFinCerrado(d));const n=Math.max(1,ds.length);return (Number(r.piezas)||0)/n}
 function cargaDia(fam,dia,excluir){let t=0;reqs.forEach(r=>{if(r.id!==excluir&&isActive(r)&&r.familia===fam&&covers(r,dia))t+=piezasDia(r,dia)});return t}
 function limiteDe(fam){return Number(limites[fam])||0}
@@ -544,7 +551,7 @@ function capHtml(fam,dia,extra){const lim=limiteDe(fam),usado=cargaDia(fam,dia),
 function ultimaBit(r){const b=r.bitacora||[];return b.length?b[b.length-1]:null}
 function docsComplete(r){return DOCS_REQ.every(k=>r.docs&&r.docs[k]&&r.docs[k].url)}
 function isActive(r){const s=efState(r);return s==="apartado"||s==="preautorizado"||s==="autorizado"}
-function covers(r,day){return r.inicio<=day&&day<=r.fin}
+function covers(r,day){return r.inicio<=day&&day<=r.fin&&!(esFinCerrado(day)&&day!==r.inicio&&day!==r.fin)}
 function overlaps(a1,a2,b1,b2){return a1<=b2&&b1<=a2}
 
 // ----- render -----
@@ -576,7 +583,8 @@ function renderCal(){
   for(let i=0;i<42;i++){
     const d=new Date(start);d.setDate(start.getDate()+i);const s=toStr(d);
     const act=reqs.filter(r=>isActive(r)&&covers(r,s));
-    let color=esFinCerrado(s)?"cerrado":"verde";
+    const tras=reqs.filter(r=>isActive(r)&&enTraslado(r,s));
+    let color=esFinCerrado(s)?"cerrado":tras.length&&!act.length?"traslado":"verde";
     if(act.some(docsComplete))color="azul";else if(act.some(r=>efState(r)==="autorizado"))color="rojo";else if(act.some(r=>efState(r)==="preautorizado"))color="rosa";else if(act.length)color="amarillo";
     const b=document.createElement("button");
     b.className="day "+color+(d.getMonth()!==view.getMonth()?" other":"")+(s===today?" today":"")+(s<today?" past":"")+(s===selected?" sel":"");
@@ -584,6 +592,7 @@ function renderCal(){
     let html='<div class="n"><span>'+d.getDate()+'</span></div>';
     act.slice(0,3).forEach(r=>{const st=docsComplete(r)?"azul":efState(r)==="autorizado"?"rojo":efState(r)==="preautorizado"?"rosa":"amarillo";html+='<span class="chip '+famClass(r.familia)+' st-'+st+'" title="'+esc(r.familia)+' · '+esc(r.proyecto)+'"><i class="st"></i>'+esc(r.familia)+' · '+esc(r.proyecto)+'</span>'});
     if(act.length>3)html+='<span class="more">+'+(act.length-3)+' más</span>';
+    if(tras.length&&act.length<3)tras.slice(0,3-act.length).forEach(r=>{html+='<span class="chip" style="background:var(--soft);color:var(--muted)" title="Traslado · '+esc(r.proyecto)+'">🚚 '+esc(r.proyecto)+'</span>'});
     html+='<div class="dot-row">'+act.map(r=>'<i class="dot '+famClass(r.familia)+'"></i>').join("")+'</div>';
     b.innerHTML=html;
     b.onclick=()=>{selected=s;if(d.getMonth()!==view.getMonth()){view=new Date(d.getFullYear(),d.getMonth(),1)}renderCal();renderDay()};
@@ -611,6 +620,9 @@ function reqHtml(r,opts){
   const ub=ultimaBit(r);
   h+='<div class="m"><span class="fam '+famClass(r.familia)+'">'+esc(r.familia)+'</span>'+esc(r.solicitante)+' · '+fmtRange(r.inicio,r.fin)+(r.piezas?'<span class="pz">'+esc(r.piezas)+' pzas</span>':"")+(ub?'<span class="bst '+ub.estado+'">'+esc(BIT_ESTADOS[ub.estado]||ub.estado)+'</span>':"")+'</div>';
   if(s==="rechazado"&&r.motivoRechazo)h+='<div class="rej"><b>Rechazada por '+esc(nombreDe(r.rechazadoPor||r.autorizadoPor||""))+(r.rechazadoEn?" · "+esc(new Date(r.rechazadoEn).toLocaleDateString("es-MX")):"")+'</b>'+esc(r.motivoRechazo)+'</div>';
+  if(isActive(r)){const tr=Number(r.traslado)||0;const td=diasTraslado(r);
+    if(can.team())h+='<div class="m"><label class="tras">Días de traslado <input type="number" min="0" max="30" step="1" value="'+tr+'" data-tr="'+r.id+'"></label>'+(td.length?' <span style="font-size:12px;color:var(--muted)">(salida '+fmt(td[0])+')</span>':"")+'</div>';
+    else if(tr)h+='<div class="m">Traslado: '+tr+(tr===1?" día":" días")+' · salida '+fmt(td[0])+'</div>'}
   if(s==="preautorizado"&&!docsComplete(r))h+='<div class="m">Fecha apartada en firme · faltan '+DOCS_REQ.filter(k=>!(r.docs&&r.docs[k]&&r.docs[k].url)).join(", ")+'</div>';
   if(s==="apartado"){const left=Math.max(0,r.creadoEn?Date.parse(r.creadoEn)+H48-Date.now():0);h+='<div class="m">Se libera en '+Math.floor(left/3600000)+' h '+Math.floor(left%3600000/60000)+' min si no se autoriza</div>'}
   if(can.docs(r)&&isActive(r))h+=docsHtml(r);
@@ -630,6 +642,7 @@ function renderDay(){
   const [y,m,d]=selected.split("-");
   $("#dayTitle").textContent=parseInt(d)+" de "+MESES[parseInt(m)-1]+" "+y;
   const list=reqs.filter(r=>covers(r,selected)&&isActive(r));
+  const trasl=reqs.filter(r=>isActive(r)&&enTraslado(r,selected));
   const body=$("#dayBody");
   if(!list.length){
     const cerrado=esFinCerrado(selected);
@@ -643,6 +656,7 @@ function renderDay(){
     const libre=can.create()&&!esFinCerrado(selected)&&selected>=todayStr()?'<div class="m" style="margin-top:10px"><button class="btn sm" id="dayNew">Apartar este día para otra familia</button></div>':"";
     body.className="";body.innerHTML=res+list.sort((a,b)=>a.familia<b.familia?-1:1).map(r=>reqHtml(r)).join("")+libre;
   }
+  if(trasl.length)body.innerHTML+='<div class="m" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)"><b>En traslado:</b> '+trasl.map(r=>esc(r.proyecto)+" ("+esc(r.familia)+", instala "+fmtRange(r.inicio,r.fin)+")").join(" · ")+'</div>';
   const nb=$("#dayNew");if(nb)nb.onclick=()=>openForm(selected);
   const lb=$("#dayLib");if(lb)lb.onclick=()=>toggleLiberado(selected);
 }
@@ -842,6 +856,11 @@ function restoreSession(){
 }
 
 // ----- acciones sobre solicitudes -----
+document.addEventListener("change",async e=>{
+  const i=e.target.closest("input[data-tr]");if(!i||!can.team())return;
+  const r=reqs.find(x=>x.id===i.dataset.tr);if(!r)return;const n=Math.max(0,Math.min(30,Math.round(Number(i.value)||0)));
+  try{await db.doc("solicitudes/"+r.id).update({traslado:n,trasladoPor:perfil,trasladoEn:new Date().toISOString()});toast(n?"Traslado: "+n+(n===1?" día":" días"):"Sin traslado")}catch(err){toast("No se pudo guardar")}
+});
 document.addEventListener("click",async e=>{
   const b=e.target.closest("button[data-a]");if(!b)return;
   const r=reqs.find(x=>x.id===b.dataset.id);if(!r||!db)return;
@@ -916,8 +935,7 @@ $("#fSave").onclick=async()=>{
   if(!fin)return err.textContent="La fecha de fin es obligatoria.";
   if(fin<ini)return err.textContent="La fecha final no puede ser antes de la inicial.";
   if(ini<todayStr())return err.textContent="No se pueden apartar fechas pasadas.";
-  const cerrados=diasEntre(ini,fin).filter(esFinCerrado);
-  if(cerrados.length)return err.textContent="No se puede programar en sábado o domingo ("+cerrados.map(fmt).join(", ")+") a menos que Admin libere ese día desde el calendario.";
+  if(esFinCerrado(ini)||esFinCerrado(fin))return err.textContent="La fecha de inicio y la de entrega no pueden caer en sábado o domingo ("+[ini,fin].filter(esFinCerrado).map(fmt).join(", ")+") a menos que Admin libere ese día. Los fines de semana intermedios no cuentan como días de instalación.";
   const pz=Number($("#fPz").value);
   if(!pz||pz<1||pz%1)return err.textContent="Indica las piezas del EXP (número entero mayor a cero).";
   const lim=limiteDe(famSel);let reparto=null;
